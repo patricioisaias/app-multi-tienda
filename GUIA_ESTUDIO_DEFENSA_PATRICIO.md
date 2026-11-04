@@ -267,3 +267,4 @@ En el minuto 12, el profesor te pedirá modificar código en tiempo real. Aquí 
 
 ### 🚀 Resumen para estar 100% Tranquilo:
 Todo lo que acabas de leer **ya está programado, probado y subido a tu rama `feature/ui-navegacion`**. Ten abierta esta guía en una pestaña o en tu teléfono durante tu estudio previo a la evaluación y dominarás la defensa de 15 minutos sin complicaciones.
+
