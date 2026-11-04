@@ -1,8 +1,11 @@
 package com.example.multitienda.ui.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +23,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.multitienda.ui.screens.inventario.InventarioRoutes
+import com.example.multitienda.ui.screens.inventario.inventarioNavGraph
 import com.example.multitienda.ui.screens.operador.FormularioAjusteScreen
 import com.example.multitienda.ui.screens.operador.LoginScreen
 import com.example.multitienda.ui.screens.operador.MenuOperadorScreen
@@ -107,12 +112,16 @@ fun AppNavigation() {
 
             FormularioAjusteScreen(
                 codigoInicial = codigoLimpio,
+                tienda = tiendaActual,
                 onAbrirScanner = {
                     navController.navigate("scanner")
                 },
                 onAjusteConfirmado = { codigo, tipo, cantidad, motivo ->
                     val motivoSeguro = if (motivo.isBlank()) "SinObservacion" else motivo
-                    navController.navigate("resumen/$codigo/$tipo/$cantidad/$motivoSeguro")
+                    val codigoRuta = Uri.encode(codigo)
+                    val tipoRuta = Uri.encode(tipo)
+                    val motivoRuta = Uri.encode(motivoSeguro)
+                    navController.navigate("resumen/$codigoRuta/$tipoRuta/$cantidad/$motivoRuta")
                 },
                 onVolver = {
                     navController.popBackStack()
@@ -130,10 +139,10 @@ fun AppNavigation() {
                 navArgument("motivo") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val codigo = backStackEntry.arguments?.getString("codigo") ?: ""
-            val tipo = backStackEntry.arguments?.getString("tipo") ?: ""
+            val codigo = Uri.decode(backStackEntry.arguments?.getString("codigo") ?: "")
+            val tipo = Uri.decode(backStackEntry.arguments?.getString("tipo") ?: "")
             val cantidad = backStackEntry.arguments?.getInt("cantidad") ?: 0
-            val motivoRaw = backStackEntry.arguments?.getString("motivo") ?: ""
+            val motivoRaw = Uri.decode(backStackEntry.arguments?.getString("motivo") ?: "")
             val motivo = if (motivoRaw == "SinObservacion") "" else motivoRaw
 
             ResumenMovimientoScreen(
@@ -175,18 +184,28 @@ fun AppNavigation() {
 
         // --- Rutas de Daniel y Angelo (Integradas) ---
 
-        // Catálogo (Usa la vista ProductoView que Daniel ya creó)
+        // Catálogo rápido (mantiene la vista ProductoView existente)
         composable("catalogo") {
             Column(modifier = Modifier.fillMaxSize()) {
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(8.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("← Volver al Menú")
+                    Button(onClick = { navController.popBackStack() }) {
+                        Text("Volver al Menú")
+                    }
+                    Button(onClick = { navController.navigate(InventarioRoutes.CATALOGO) }) {
+                        Text("Catálogo de inventario (Room)")
+                    }
                 }
                 ProductoView()
             }
         }
+
+        // Catálogo completo, detalle, CRUD, conteo e historial de Daniel
+        inventarioNavGraph(navController, tiendaActual)
 
         // Dashboard (Ruta para Angelo)
         composable("dashboard") {
@@ -235,14 +254,19 @@ fun AppNavigation() {
                 )
                 Button(
                     onClick = {
-                        // Simulación de código escaneado para pruebas
-                        navController.navigate("ajuste/780123456789") {
+                        // TODO(Angelo): al integrar ScannerScreen, usar:
+                        // onCodigoEscaneado = { codigo ->
+                        //     navController.navigate("ajuste/${Uri.encode(codigo)}") {
+                        //         popUpTo("scanner") { inclusive = true }
+                        //     }
+                        // }
+                        navController.navigate("ajuste/7801234567890") {
                             popUpTo("scanner") { inclusive = true }
                         }
                     },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text("Simular Escaneo Código '780123456789'")
+                    Text("Simular Escaneo Código '7801234567890'")
                 }
                 Button(
                     onClick = { navController.popBackStack() },
@@ -254,4 +278,3 @@ fun AppNavigation() {
         }
     }
 }
-

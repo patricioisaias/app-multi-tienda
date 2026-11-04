@@ -20,6 +20,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,16 +31,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.multitienda.ui.components.BotonAccion
 import com.example.multitienda.ui.components.CustomTextField
+import com.example.multitienda.viewmodel.AjusteViewModel
+
+private data class AjustePendiente(
+    val codigo: String,
+    val tipo: String,
+    val cantidad: Int,
+    val motivo: String
+)
 
 @Composable
 fun FormularioAjusteScreen(
     codigoInicial: String = "",
+    tienda: String = "",
     onAbrirScanner: () -> Unit,
     onAjusteConfirmado: (codigo: String, tipo: String, cantidad: Int, motivo: String) -> Unit,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    viewModel: AjusteViewModel = viewModel()
 ) {
+    val estado by viewModel.estado.collectAsState()
+    var ajustePendiente by remember { mutableStateOf<AjustePendiente?>(null) }
     var codigo by remember { mutableStateOf(codigoInicial) }
     var tipoMovimiento by remember { mutableStateOf("Entrada") }
     var cantidad by remember { mutableStateOf("") }
@@ -46,9 +61,23 @@ fun FormularioAjusteScreen(
 
     var errorCodigo by remember { mutableStateOf<String?>(null) }
     var errorCantidad by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
 
     val tipos = listOf("Entrada", "Salida", "Ajuste / Conteo")
+
+    LaunchedEffect(estado.confirmado) {
+        if (estado.confirmado) {
+            viewModel.consumirConfirmado()
+            ajustePendiente?.let { pendiente ->
+                onAjusteConfirmado(
+                    pendiente.codigo,
+                    pendiente.tipo,
+                    pendiente.cantidad,
+                    pendiente.motivo
+                )
+            }
+            ajustePendiente = null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -78,6 +107,7 @@ fun FormularioAjusteScreen(
                 onValueChange = {
                     codigo = it
                     errorCodigo = null
+                    viewModel.limpiarError()
                 },
                 label = "Código de Barras",
                 isError = errorCodigo != null,
@@ -109,7 +139,10 @@ fun FormularioAjusteScreen(
             tipos.forEach { tipo ->
                 FilterChip(
                     selected = tipoMovimiento == tipo,
-                    onClick = { tipoMovimiento = tipo },
+                    onClick = {
+                        tipoMovimiento = tipo
+                        viewModel.limpiarError()
+                    },
                     label = { Text(tipo) }
                 )
             }
@@ -122,6 +155,7 @@ fun FormularioAjusteScreen(
             onValueChange = {
                 cantidad = it
                 errorCantidad = null
+                viewModel.limpiarError()
             },
             label = "Cantidad a Registrar",
             isError = errorCantidad != null,
@@ -131,15 +165,27 @@ fun FormularioAjusteScreen(
 
         CustomTextField(
             value = motivo,
-            onValueChange = { motivo = it },
+            onValueChange = {
+                motivo = it
+                viewModel.limpiarError()
+            },
             label = "Motivo u Observación (Opcional)"
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        estado.error?.let { mensaje ->
+            Text(
+                text = mensaje,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         BotonAccion(
             texto = "Confirmar Movimiento",
-            isLoading = isLoading,
+            isLoading = estado.cargando,
             onClick = {
                 var valido = true
                 if (codigo.isBlank()) {
@@ -153,8 +199,21 @@ fun FormularioAjusteScreen(
                 }
 
                 if (valido) {
-                    isLoading = true
-                    onAjusteConfirmado(codigo, tipoMovimiento, cantInt!!, motivo)
+                    val cantidadValida = cantInt ?: 0
+                    val motivoFinal = motivo.trim()
+                    ajustePendiente = AjustePendiente(
+                        codigo = codigo.trim(),
+                        tipo = tipoMovimiento,
+                        cantidad = cantidadValida,
+                        motivo = motivoFinal
+                    )
+                    viewModel.registrar(
+                        codigo = codigo.trim(),
+                        tipo = tipoMovimiento,
+                        cantidad = cantidadValida,
+                        motivo = motivoFinal,
+                        tienda = tienda
+                    )
                 }
             }
         )
@@ -169,4 +228,3 @@ fun FormularioAjusteScreen(
         }
     }
 }
-

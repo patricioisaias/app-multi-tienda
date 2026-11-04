@@ -221,8 +221,33 @@ ViewModel actualiza el StateFlow → Compose se redibuja
   `Icons.AutoMirrored.Filled.ArrowBack`.
 - **Git:** `git status` confirma que solo cambiaron archivos del módulo de Daniel
   y `GUIA_ESTUDIO_DANIEL.md`. `master` no se tocó.
-- **Pendiente:** probar en ejecución. Sin KSP, Room no genera
-  `AppDatabase_Impl` y la app falla al abrir la base.
+- **Corrección:** se habilitó KSP (`2.3.6`) y `room3-compiler`; Room ya genera
+  `AppDatabase_Impl` y la app funciona en ejecución.
+
+### Paso 9 - Ajustes persistidos y contrato para Angelo
+
+- **Qué se hizo:** se creó `AjusteViewModel` para registrar entradas, salidas y
+  conteos desde `FormularioAjusteScreen`; actualiza el stock y guarda el
+  `Movimiento` antes de mostrar el resumen.
+- **Reglas:** `Entrada` suma, `Salida` resta y valida stock suficiente,
+  `Ajuste / Conteo` fija el stock absoluto y registra la diferencia. Si el
+  código no existe, se muestra un error y no se navega.
+- **Navegación:** `inventarioNavGraph` quedó conectado. Se mantiene
+  `ProductoView` como acceso rápido y se agregó un botón al catálogo de Daniel.
+- **Angelo (scanner):** la ruta `"scanner"` ya navega a `ajuste/{codigo}`.
+  Al reemplazar el placeholder por `ScannerScreen`, usar:
+  ```kotlin
+  onCodigoEscaneado = { codigo ->
+      navController.navigate("ajuste/${Uri.encode(codigo)}") {
+          popUpTo("scanner") { inclusive = true }
+      }
+  }
+  ```
+- **Angelo (dashboard/alertas):** `ProductoViewModel.productosBajoStock` (o
+  `ProductoRepository.productosBajoStock`) expone los productos con
+  `stock <= stockMinimo`.
+- **Nota:** no se agregaron entidades nuevas. Si se requiere persistir una
+  solicitud de reposición, coordinar el cambio de esquema.
 
 ---
 
@@ -248,7 +273,8 @@ ViewModel actualiza el StateFlow → Compose se redibuja
 | `ui/screens/inventario/ConfirmarEliminarScreen.kt` | Pantalla 12 | 6 |
 | `ui/screens/inventario/ConteoFisicoScreen.kt` | Pantalla 13 | 6 |
 | `ui/screens/inventario/HistorialMovimientosScreen.kt` | Pantalla 14 | 6 |
-| `ui/screens/inventario/InventarioNavigation.kt` | Rutas del módulo (sin conectar) | 7 |
+| `ui/screens/inventario/InventarioNavigation.kt` | Rutas del módulo (conectadas en `AppNavigation`) | 7 |
+| `viewmodel/AjusteViewModel.kt` | Persistencia y validación de ajustes de stock | 9 |
 
 ---
 
@@ -275,14 +301,16 @@ Room no genera `AppDatabase_Impl` y la app falla al abrir la base con
 
 ---
 
-## 7. Postergado
+## 7. Estado de integración
 
-1. **KSP + `room3-compiler`:** requiere editar `gradle/libs.versions.toml`,
-   `build.gradle.kts` raíz y `app/build.gradle.kts`. Sin esto no hay prueba
-   funcional real de Room.
-2. **Rutas en `AppNavigation.kt`:** el archivo es de Patricio. Se entrega
-   `InventarioNavigation.kt` listo y una línea para conectar.
-3. **Prueba en dispositivo:** bloqueada hasta resolver el punto 1.
+1. **KSP + `room3-compiler`:** habilitado (`ksp = 2.3.6`). Room genera
+   `AppDatabase_Impl` y el CRUD funciona en ejecución.
+2. **Rutas en `AppNavigation.kt`:** `inventarioNavGraph` conectado. Se mantiene
+   `ProductoView` como acceso rápido y un botón abre el catálogo de Daniel.
+3. **Ajustes:** `AjusteViewModel` persiste stock y movimiento; el resumen solo
+   se muestra después de escribir en Room.
+4. **Prueba en dispositivo:** verificada en emulador (seed, catálogo, detalle,
+   conteo, historial, ajuste manual y ajuste desde escaneo simulado).
 
 ---
 

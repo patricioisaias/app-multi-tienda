@@ -3,6 +3,7 @@ package com.example.multitienda.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.multitienda.data.repository.ProductoRepository
 import com.example.multitienda.modelo.FormularioModel
 import com.example.multitienda.modelo.Producto
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,12 @@ import kotlinx.coroutines.launch
 class FormularioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prodDao = AppDatabase.getDatabase(application).productoDAO()
+
+    init {
+        viewModelScope.launch {
+            ProductoRepository(prodDao).sembrarSiVacio()
+        }
+    }
 
     val lista: StateFlow<List<Producto>> =
         prodDao.listarProductos().stateIn(
@@ -67,9 +74,20 @@ class FormularioViewModel(application: Application) : AndroidViewModel(applicati
             errorPrecio = "el valor del precio es nulo"
             valido = false
         }
+        val stock = f.stock.toIntOrNull()
+        if (stock == null || stock < 0) {
+            errorStock = "el stock debe ser un numero mayor o igual a 0"
+            valido = false
+        }
         // validacion
         if (valido == false) {
-            _uiState.update { it.copy(errorNombre = errorNombre, errorPrecio = errorPrecio) }
+            _uiState.update {
+                it.copy(
+                    errorNombre = errorNombre,
+                    errorPrecio = errorPrecio,
+                    errorStock = errorStock
+                )
+            }
             return false
         }
         // proceso de grabar
@@ -77,7 +95,7 @@ class FormularioViewModel(application: Application) : AndroidViewModel(applicati
             id = f.id,
             nombre = f.nombre,
             precio = f.precio.toDoubleOrNull()!!,
-            stock = f.stock.toIntOrNull()!!
+            stock = stock!!
         )
         viewModelScope.launch {
             prodDao.agregarProducto(prod)
