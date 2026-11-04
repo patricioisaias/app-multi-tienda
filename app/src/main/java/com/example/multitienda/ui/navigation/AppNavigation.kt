@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -23,6 +21,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
+import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
+import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
+import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
 import com.example.multitienda.ui.screens.inventario.InventarioRoutes
 import com.example.multitienda.ui.screens.inventario.inventarioNavGraph
 import com.example.multitienda.ui.screens.operador.FormularioAjusteScreen
@@ -32,12 +34,16 @@ import com.example.multitienda.ui.screens.operador.PerfilUsuarioScreen
 import com.example.multitienda.ui.screens.operador.ResumenMovimientoScreen
 import com.example.multitienda.ui.screens.operador.SeleccionTiendaScreen
 import com.example.multitienda.ui.screens.operador.SplashScreen
+import com.example.multitienda.ui.screens.scanner.EntradaManualCodigoScreen
+import com.example.multitienda.ui.screens.scanner.ResultadoScannerScreen
+import com.example.multitienda.ui.screens.scanner.ScannerScreen
 import com.example.multitienda.ui.view.ProductoView
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     var tiendaActual by remember { mutableStateOf("Bodega Pudahuel (Central)") }
+    var rolActual by remember { mutableStateOf("Operador") }
 
     NavHost(
         navController = navController,
@@ -57,9 +63,16 @@ fun AppNavigation() {
         // 2. Login
         composable("login") {
             LoginScreen(
-                onLoginSuccess = { _ ->
-                    navController.navigate("tiendas") {
-                        popUpTo("login") { inclusive = true }
+                onLoginSuccess = { rol ->
+                    rolActual = rol
+                    if (rol == "Gerencial") {
+                        navController.navigate("dashboard") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("tiendas") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 }
             )
@@ -182,9 +195,9 @@ fun AppNavigation() {
             )
         }
 
-        // --- Rutas de Daniel y Angelo (Integradas) ---
+        // --- Catálogo y Persistencia Room (Módulo Daniel: Pantallas 8-14) ---
 
-        // Catálogo rápido (mantiene la vista ProductoView existente)
+        // Catálogo rápido (mantiene la vista ProductoView)
         composable("catalogo") {
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
@@ -204,77 +217,121 @@ fun AppNavigation() {
             }
         }
 
-        // Catálogo completo, detalle, CRUD, conteo e historial de Daniel
+        // Grafo de inventario con Pantallas 8 a 14 de Daniel
         inventarioNavGraph(navController, tiendaActual)
 
-        // Dashboard (Ruta para Angelo)
-        composable("dashboard") {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Dashboard y Alertas de Quiebre",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = "(Módulo en desarrollo por Angelo)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    Text("Volver")
+        // --- Recursos Nativos, Scanner y Gerencial (Módulo Angelo: Pantallas 15-21) ---
+
+        // Pantalla 15: Scanner con CameraX y Google ML Kit
+        composable("scanner") {
+            ScannerScreen(
+                onCodigoDetectado = { codigo ->
+                    val codigoEncoded = Uri.encode(codigo)
+                    navController.navigate("scan_result/$codigoEncoded") {
+                        popUpTo("scanner") { inclusive = true }
+                    }
+                },
+                onNavigateToManual = {
+                    navController.navigate("scanner_manual")
+                },
+                onVolver = {
+                    navController.popBackStack()
                 }
-            }
+            )
         }
 
-        // Scanner (Ruta para Angelo)
-        composable("scanner") {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Lector de Códigos de Barra",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = "(Módulo de CameraX en desarrollo por Angelo)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = {
-                        // TODO(Angelo): al integrar ScannerScreen, usar:
-                        // onCodigoEscaneado = { codigo ->
-                        //     navController.navigate("ajuste/${Uri.encode(codigo)}") {
-                        //         popUpTo("scanner") { inclusive = true }
-                        //     }
-                        // }
-                        navController.navigate("ajuste/7801234567890") {
-                            popUpTo("scanner") { inclusive = true }
-                        }
-                    },
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    Text("Simular Escaneo Código '7801234567890'")
+        // Pantalla 16: Resultado de Escaneo con Vibración Háptica y Consulta Room
+        composable(
+            route = "scan_result/{codigo}",
+            arguments = listOf(navArgument("codigo") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val codigo = Uri.decode(backStackEntry.arguments?.getString("codigo") ?: "")
+            ResultadoScannerScreen(
+                codigo = codigo,
+                onAjustarStock = { cod ->
+                    val codEncoded = Uri.encode(cod)
+                    navController.navigate("ajuste/$codEncoded")
+                },
+                onEscanearOtro = {
+                    navController.navigate("scanner") {
+                        popUpTo("scan_result/{codigo}") { inclusive = true }
+                    }
+                },
+                onVolverMenu = {
+                    navController.navigate("menu_operador") {
+                        popUpTo("menu_operador") { inclusive = true }
+                    }
                 }
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text("Cancelar")
+            )
+        }
+
+        // Pantalla 17: Entrada Manual de Código de Barras
+        composable("scanner_manual") {
+            EntradaManualCodigoScreen(
+                onCodigoIngresado = { codigo ->
+                    val codigoEncoded = Uri.encode(codigo)
+                    navController.navigate("scan_result/$codigoEncoded") {
+                        popUpTo("scanner_manual") { inclusive = true }
+                    }
+                },
+                onVolver = {
+                    navController.popBackStack()
                 }
-            }
+            )
+        }
+
+        // Pantalla 18: Dashboard Gerencial (Exclusivo Gerencial)
+        composable("dashboard") {
+            DashboardGerencialScreen(
+                rolActual = rolActual,
+                onNavigateToAlertas = {
+                    navController.navigate("alertas")
+                },
+                onNavigateToConfigHardware = {
+                    navController.navigate("config_hardware")
+                },
+                onCerrarSesion = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // Pantalla 19: Alertas de Quiebre de Stock
+        composable("alertas") {
+            AlertasQuiebreScreen(
+                onDeclararReposicion = { id ->
+                    navController.navigate("reposicion/$id")
+                },
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 20: Declarar Reposición
+        composable(
+            route = "reposicion/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val prodId = backStackEntry.arguments?.getInt("id") ?: 0
+            DeclararReposicionScreen(
+                productoId = prodId,
+                tiendaActiva = tiendaActual,
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 21: Diagnóstico de Hardware y Prueba de Recursos Nativos
+        composable("config_hardware") {
+            ConfigHardwareScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
