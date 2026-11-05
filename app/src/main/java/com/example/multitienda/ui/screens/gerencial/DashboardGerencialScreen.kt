@@ -14,10 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -25,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -49,7 +51,8 @@ fun DashboardGerencialScreen(
     rolActual: String = "Gerencial",
     onNavigateToAlertas: () -> Unit,
     onNavigateToConfigHardware: () -> Unit,
-    onCerrarSesion: () -> Unit,
+    onVolver: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {},
     viewModel: DashboardViewModel = viewModel()
 ) {
     val metricas by viewModel.metricas.collectAsState()
@@ -90,8 +93,8 @@ fun DashboardGerencialScreen(
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onCerrarSesion, modifier = Modifier.fillMaxWidth()) {
-                Text("Volver al Inicio")
+            Button(onClick = onVolver, modifier = Modifier.fillMaxWidth()) {
+                Text("Volver al Menú")
             }
         }
         return
@@ -103,41 +106,49 @@ fun DashboardGerencialScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Cabecera
+        // Cabecera con botón de retorno al Menú
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Bienvenido, $usuario",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = rolActual,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Dashboard Gerencial",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Consolidado Multi-Tienda y Bodegas",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onVolver) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Column {
+                    Text(
+                        text = "Bienvenido, $usuario",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = rolActual,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            OutlinedButton(onClick = onCerrarSesion) {
-                Text("Salir")
+            OutlinedButton(onClick = onVolver) {
+                Text("Menú")
             }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Dashboard Gerencial",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "Consolidado Multi-Tienda y Bodegas",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -303,4 +314,3 @@ private fun TarjetaKpi(
         }
     }
 }
-

@@ -21,6 +21,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.multitienda.ui.screens.gerencial.AdminTiendasScreen
+import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
+import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
+import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
+import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
+import com.example.multitienda.ui.screens.gerencial.ExportarReportesScreen
+import com.example.multitienda.ui.screens.inventario.DiferenciasStockScreen
 import com.example.multitienda.ui.screens.inventario.InventarioRoutes
 import com.example.multitienda.ui.screens.inventario.inventarioNavGraph
 import com.example.multitienda.ui.screens.operador.FormularioAjusteScreen
@@ -33,10 +40,6 @@ import com.example.multitienda.ui.screens.operador.SplashScreen
 import com.example.multitienda.ui.screens.scanner.EntradaManualCodigoScreen
 import com.example.multitienda.ui.screens.scanner.ResultadoScannerScreen
 import com.example.multitienda.ui.screens.scanner.ScannerScreen
-import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
-import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
-import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
-import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
 
 @Composable
 fun AppNavigation() {
@@ -66,13 +69,13 @@ fun AppNavigation() {
                 onLoginSuccess = { nombre, puesto, rol ->
                     usuarioActual = nombre
                     rolActual = puesto
-                    if (puesto == "Gerencial") {
-                        // Gerencial va directo al Dashboard (sin seleccionar sucursal)
-                        navController.navigate(AppRoutes.DASHBOARD)
+                    tiendaActual = if (puesto.contains("Gerencial", ignoreCase = true) || puesto.contains("Gerente", ignoreCase = true)) {
+                        "Red Comercial Multi-Tienda"
                     } else {
-                        // Operador / Bodega va directo al Menú con sucursal predeterminada
-                        tiendaActual = "Bodega Pudahuel (Central)"
-                        navController.navigate(AppRoutes.MENU)
+                        "Bodega Pudahuel (Central)"
+                    }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
                 }
             )
@@ -90,7 +93,7 @@ fun AppNavigation() {
             )
         }
 
-        // 4. Menú Principal del Operador
+        // 4. Menú Principal Adaptativo por Perfil
         composable(AppRoutes.MENU) {
             MenuOperadorScreen(
                 usuario = usuarioActual,
@@ -102,11 +105,29 @@ fun AppNavigation() {
                 onNavigateToAjuste = {
                     navController.navigate(AppRoutes.ajuste("manual"))
                 },
+                onNavigateToConteo = {
+                    navController.navigate(InventarioRoutes.CATALOGO)
+                },
                 onNavigateToCatalogo = {
                     navController.navigate(InventarioRoutes.CATALOGO)
                 },
+                onNavigateToDiferencias = {
+                    navController.navigate(AppRoutes.DIFERENCIAS_STOCK)
+                },
+                onNavigateToAlertas = {
+                    navController.navigate("alertas")
+                },
                 onNavigateToDashboard = {
                     navController.navigate(AppRoutes.DASHBOARD)
+                },
+                onNavigateToHistorial = {
+                    navController.navigate(InventarioRoutes.HISTORIAL)
+                },
+                onNavigateToAdminTiendas = {
+                    navController.navigate(AppRoutes.ADMIN_TIENDAS)
+                },
+                onNavigateToExportar = {
+                    navController.navigate(AppRoutes.EXPORTAR_REPORTES)
                 },
                 onNavigateToPerfil = {
                     navController.navigate(AppRoutes.PERFIL)
@@ -133,9 +154,6 @@ fun AppNavigation() {
                 },
                 onAjusteConfirmado = { codigo, tipo, cantidad, motivo ->
                     val motivoSeguro = if (motivo.isBlank()) "SinObservacion" else motivo
-                    val codigoRuta = Uri.encode(codigo)
-                    val tipoRuta = Uri.encode(tipo)
-                    val motivoRuta = Uri.encode(motivoSeguro)
                     navController.navigate(
                         AppRoutes.resumen(codigo, tipo, cantidad, motivoSeguro)
                     )
@@ -242,8 +260,8 @@ fun AppNavigation() {
                     }
                 },
                 onVolverMenu = {
-                    navController.navigate("menu_operador") {
-                        popUpTo("menu_operador") { inclusive = true }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.MENU) { inclusive = true }
                     }
                 }
             )
@@ -274,6 +292,9 @@ fun AppNavigation() {
                 },
                 onNavigateToConfigHardware = {
                     navController.navigate("config_hardware")
+                },
+                onVolver = {
+                    navController.popBackStack()
                 },
                 onCerrarSesion = {
                     navController.navigate(AppRoutes.LOGIN) {
@@ -313,6 +334,36 @@ fun AppNavigation() {
         // Pantalla 21: Diagnóstico de Hardware y Prueba de Recursos Nativos
         composable("config_hardware") {
             ConfigHardwareScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 22: Administración de Tiendas (Gerencial)
+        composable(AppRoutes.ADMIN_TIENDAS) {
+            AdminTiendasScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 23: Exportar Reportes (Gerencial)
+        composable(AppRoutes.EXPORTAR_REPORTES) {
+            ExportarReportesScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 24: Control de Diferencias de Stock (Encargado de Bodega)
+        composable(AppRoutes.DIFERENCIAS_STOCK) {
+            DiferenciasStockScreen(
+                onRectificar = { id ->
+                    navController.navigate(InventarioRoutes.conteo(id))
+                },
                 onVolver = {
                     navController.popBackStack()
                 }

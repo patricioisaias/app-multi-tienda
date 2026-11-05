@@ -10,8 +10,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class LoginUiState(
-    val email: String = "",
-    val password: String = "",
+    val email: String = "test1@bexai.cl",
+    val password: String = "1234",
+    val rolSeleccionado: String = "Operador",
     val errorEmail: String? = null,
     val errorPassword: String? = null,
     val isLoading: Boolean = false
@@ -23,12 +24,15 @@ data class LoginCredenciales(
     val rol: String
 )
 
-private const val PASSWORD = "1234"
+private val PASSWORDS = setOf("1234", "123456", "admin123")
 
 private val USUARIOS = mapOf(
-    "test1@bexai.cl" to LoginCredenciales("Usuario 1", "Operador de Terreno", "Operador"),
-    "test2@bexai.cl" to LoginCredenciales("Usuario 2", "Encargado de Bodega", "Bodega"),
-    "test3@bexai.cl" to LoginCredenciales("Usuario 3", "Gerencial", "Gerente")
+    "test1@bexai.cl" to LoginCredenciales("Patricio Céspedes", "Operador de Terreno", "Operador"),
+    "test2@bexai.cl" to LoginCredenciales("Daniel Aedo", "Encargado de Bodega", "Bodega"),
+    "test3@bexai.cl" to LoginCredenciales("Angelo Valenzuela", "Gerencial", "Gerencial"),
+    "operador@bexai.cl" to LoginCredenciales("Patricio Céspedes", "Operador de Terreno", "Operador"),
+    "bodega@bexai.cl" to LoginCredenciales("Daniel Aedo", "Encargado de Bodega", "Bodega"),
+    "gerente@bexai.cl" to LoginCredenciales("Angelo Valenzuela", "Gerencial", "Gerencial")
 )
 
 class LoginViewModel : ViewModel() {
@@ -45,6 +49,24 @@ class LoginViewModel : ViewModel() {
 
     fun onPasswordChange(valor: String) {
         _state.update { it.copy(password = valor, errorPassword = null) }
+    }
+
+    fun seleccionarPerfilRapido(rol: String) {
+        val (email, pass) = when (rol) {
+            "Operador" -> "test1@bexai.cl" to "1234"
+            "Bodega" -> "test2@bexai.cl" to "1234"
+            "Gerencial" -> "test3@bexai.cl" to "1234"
+            else -> "" to ""
+        }
+        _state.update {
+            it.copy(
+                rolSeleccionado = rol,
+                email = email,
+                password = pass,
+                errorEmail = null,
+                errorPassword = null
+            )
+        }
     }
 
     fun login() {
@@ -64,7 +86,7 @@ class LoginViewModel : ViewModel() {
         }
         if (password.isEmpty()) {
             errorPassword = "La contraseña es obligatoria"
-        } else if (password != PASSWORD) {
+        } else if (!PASSWORDS.contains(password)) {
             errorPassword = "Contraseña incorrecta"
         }
 
