@@ -3,17 +3,17 @@ package com.example.multitienda.ui.navigation
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -21,10 +21,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
-import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
-import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
-import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
 import com.example.multitienda.ui.screens.inventario.InventarioRoutes
 import com.example.multitienda.ui.screens.inventario.inventarioNavGraph
 import com.example.multitienda.ui.screens.operador.FormularioAjusteScreen
@@ -37,87 +33,93 @@ import com.example.multitienda.ui.screens.operador.SplashScreen
 import com.example.multitienda.ui.screens.scanner.EntradaManualCodigoScreen
 import com.example.multitienda.ui.screens.scanner.ResultadoScannerScreen
 import com.example.multitienda.ui.screens.scanner.ScannerScreen
-import com.example.multitienda.ui.view.ProductoView
+import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
+import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
+import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
+import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    var tiendaActual by remember { mutableStateOf("Bodega Pudahuel (Central)") }
-    var rolActual by remember { mutableStateOf("Operador") }
+    var tiendaActual by rememberSaveable { mutableStateOf("Bodega Pudahuel (Central)") }
+    var usuarioActual by rememberSaveable { mutableStateOf("Usuario") }
+    var rolActual by rememberSaveable { mutableStateOf("Operador") }
 
     NavHost(
         navController = navController,
-        startDestination = "splash"
+        startDestination = AppRoutes.SPLASH
     ) {
         // 1. Splash Screen
-        composable("splash") {
+        composable(AppRoutes.SPLASH) {
             SplashScreen(
                 onNavigateToLogin = {
-                    navController.navigate("login") {
-                        popUpTo("splash") { inclusive = true }
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(AppRoutes.SPLASH) { inclusive = true }
                     }
                 }
             )
         }
 
         // 2. Login
-        composable("login") {
+        composable(AppRoutes.LOGIN) {
             LoginScreen(
-                onLoginSuccess = { rol ->
-                    rolActual = rol
-                    if (rol == "Gerencial") {
-                        navController.navigate("dashboard") {
-                            popUpTo("login") { inclusive = true }
-                        }
+                onLoginSuccess = { nombre, puesto, rol ->
+                    usuarioActual = nombre
+                    rolActual = puesto
+                    if (puesto == "Gerencial") {
+                        // Gerencial va directo al Dashboard (sin seleccionar sucursal)
+                        navController.navigate(AppRoutes.DASHBOARD)
                     } else {
-                        navController.navigate("tiendas") {
-                            popUpTo("login") { inclusive = true }
-                        }
+                        // Operador / Bodega va directo al Menú con sucursal predeterminada
+                        tiendaActual = "Bodega Pudahuel (Central)"
+                        navController.navigate(AppRoutes.MENU)
                     }
                 }
             )
         }
 
         // 3. Selección de Tienda
-        composable("tiendas") {
+        composable(AppRoutes.TIENDAS) {
             SeleccionTiendaScreen(
                 onTiendaSeleccionada = { tienda ->
                     tiendaActual = tienda
-                    navController.navigate("menu_operador") {
-                        popUpTo("tiendas") { inclusive = true }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.TIENDAS) { inclusive = true }
                     }
                 }
             )
         }
 
         // 4. Menú Principal del Operador
-        composable("menu_operador") {
+        composable(AppRoutes.MENU) {
             MenuOperadorScreen(
+                usuario = usuarioActual,
+                rol = rolActual,
                 tiendaActiva = tiendaActual,
                 onNavigateToScanner = {
-                    navController.navigate("scanner")
+                    navController.navigate(AppRoutes.SCANNER)
                 },
                 onNavigateToAjuste = {
-                    navController.navigate("ajuste/manual")
+                    navController.navigate(AppRoutes.ajuste("manual"))
                 },
                 onNavigateToCatalogo = {
-                    navController.navigate("catalogo")
+                    navController.navigate(InventarioRoutes.CATALOGO)
                 },
                 onNavigateToDashboard = {
-                    navController.navigate("dashboard")
+                    navController.navigate(AppRoutes.DASHBOARD)
                 },
                 onNavigateToPerfil = {
-                    navController.navigate("perfil")
+                    navController.navigate(AppRoutes.PERFIL)
                 },
                 onCambiarTienda = {
-                    navController.navigate("tiendas")
+                    navController.navigate(AppRoutes.TIENDAS)
                 }
             )
         }
 
         // 5. Formulario de Ajuste
         composable(
-            route = "ajuste/{codigo}",
+            route = AppRoutes.AJUSTE,
             arguments = listOf(navArgument("codigo") { type = NavType.StringType })
         ) { backStackEntry ->
             val codigoArg = backStackEntry.arguments?.getString("codigo") ?: ""
@@ -127,14 +129,16 @@ fun AppNavigation() {
                 codigoInicial = codigoLimpio,
                 tienda = tiendaActual,
                 onAbrirScanner = {
-                    navController.navigate("scanner")
+                    navController.navigate(AppRoutes.SCANNER)
                 },
                 onAjusteConfirmado = { codigo, tipo, cantidad, motivo ->
                     val motivoSeguro = if (motivo.isBlank()) "SinObservacion" else motivo
                     val codigoRuta = Uri.encode(codigo)
                     val tipoRuta = Uri.encode(tipo)
                     val motivoRuta = Uri.encode(motivoSeguro)
-                    navController.navigate("resumen/$codigoRuta/$tipoRuta/$cantidad/$motivoRuta")
+                    navController.navigate(
+                        AppRoutes.resumen(codigo, tipo, cantidad, motivoSeguro)
+                    )
                 },
                 onVolver = {
                     navController.popBackStack()
@@ -144,7 +148,7 @@ fun AppNavigation() {
 
         // 6. Resumen de Movimiento Confirmado
         composable(
-            route = "resumen/{codigo}/{tipo}/{cantidad}/{motivo}",
+            route = AppRoutes.RESUMEN,
             arguments = listOf(
                 navArgument("codigo") { type = NavType.StringType },
                 navArgument("tipo") { type = NavType.StringType },
@@ -165,27 +169,29 @@ fun AppNavigation() {
                 motivo = motivo,
                 tienda = tiendaActual,
                 onNuevoAjuste = {
-                    navController.navigate("ajuste/manual") {
-                        popUpTo("menu_operador")
+                    navController.navigate(AppRoutes.ajuste("manual")) {
+                        popUpTo(AppRoutes.MENU)
                     }
                 },
                 onVolverMenu = {
-                    navController.navigate("menu_operador") {
-                        popUpTo("menu_operador") { inclusive = true }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.MENU) { inclusive = true }
                     }
                 }
             )
         }
 
         // 7. Perfil de Usuario
-        composable("perfil") {
+        composable(AppRoutes.PERFIL) {
             PerfilUsuarioScreen(
+                usuario = usuarioActual,
+                rol = rolActual,
                 tienda = tiendaActual,
                 onCambiarTienda = {
-                    navController.navigate("tiendas")
+                    navController.navigate(AppRoutes.TIENDAS)
                 },
                 onCerrarSesion = {
-                    navController.navigate("login") {
+                    navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
@@ -196,39 +202,17 @@ fun AppNavigation() {
         }
 
         // --- Catálogo y Persistencia Room (Módulo Daniel: Pantallas 8-14) ---
-
-        // Catálogo rápido (mantiene la vista ProductoView)
-        composable("catalogo") {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(onClick = { navController.popBackStack() }) {
-                        Text("Volver al Menú")
-                    }
-                    Button(onClick = { navController.navigate(InventarioRoutes.CATALOGO) }) {
-                        Text("Catálogo de inventario (Room)")
-                    }
-                }
-                ProductoView()
-            }
-        }
-
-        // Grafo de inventario con Pantallas 8 a 14 de Daniel
         inventarioNavGraph(navController, tiendaActual)
 
         // --- Recursos Nativos, Scanner y Gerencial (Módulo Angelo: Pantallas 15-21) ---
 
         // Pantalla 15: Scanner con CameraX y Google ML Kit
-        composable("scanner") {
+        composable(AppRoutes.SCANNER) {
             ScannerScreen(
                 onCodigoDetectado = { codigo ->
                     val codigoEncoded = Uri.encode(codigo)
                     navController.navigate("scan_result/$codigoEncoded") {
-                        popUpTo("scanner") { inclusive = true }
+                        popUpTo(AppRoutes.SCANNER) { inclusive = true }
                     }
                 },
                 onNavigateToManual = {
@@ -281,8 +265,9 @@ fun AppNavigation() {
         }
 
         // Pantalla 18: Dashboard Gerencial (Exclusivo Gerencial)
-        composable("dashboard") {
+        composable(AppRoutes.DASHBOARD) {
             DashboardGerencialScreen(
+                usuario = usuarioActual,
                 rolActual = rolActual,
                 onNavigateToAlertas = {
                     navController.navigate("alertas")
@@ -291,7 +276,7 @@ fun AppNavigation() {
                     navController.navigate("config_hardware")
                 },
                 onCerrarSesion = {
-                    navController.navigate("login") {
+                    navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 }

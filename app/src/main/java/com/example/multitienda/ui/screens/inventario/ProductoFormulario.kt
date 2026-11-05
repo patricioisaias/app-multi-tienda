@@ -16,18 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.multitienda.modelo.ProductoFormModel
 import com.example.multitienda.ui.components.BotonAccion
 import com.example.multitienda.ui.components.CustomTextField
-import com.example.multitienda.ui.theme.MultiTiendaTheme
 
 @Composable
 fun ProductoFormulario(
     form: ProductoFormModel,
-    titulo: String,
-    textoBoton: String,
     onCodigoBarrasChange: (String) -> Unit,
     onNombreChange: (String) -> Unit,
     onCategoriaChange: (String) -> Unit,
@@ -43,12 +39,6 @@ fun ProductoFormulario(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = titulo,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
         Text(
             text = "Complete los datos del producto",
             style = MaterialTheme.typography.bodyMedium,
@@ -111,45 +101,18 @@ fun ProductoFormulario(
         Spacer(modifier = Modifier.height(24.dp))
 
         BotonAccion(
-            texto = textoBoton,
+            texto = "Guardar",
             isLoading = form.guardando,
             onClick = onGuardar
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedButton(
+        androidx.compose.material3.OutlinedButton(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Volver")
+            androidx.compose.material3.Text("Volver")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun ProductoFormularioPreview() {
-    MultiTiendaTheme {
-        ProductoFormulario(
-            form = ProductoFormModel(
-                codigoBarras = "7801234567890",
-                nombre = "Leche Entera 1L",
-                categoria = "Lácteos",
-                precio = "1290",
-                stock = "24",
-                stockMinimo = "10"
-            ),
-            titulo = "Nuevo Producto",
-            textoBoton = "Guardar Producto",
-            onCodigoBarrasChange = {},
-            onNombreChange = {},
-            onCategoriaChange = {},
-            onPrecioChange = {},
-            onStockChange = {},
-            onStockMinimoChange = {},
-            onGuardar = {},
-            onVolver = {}
-        )
     }
 }

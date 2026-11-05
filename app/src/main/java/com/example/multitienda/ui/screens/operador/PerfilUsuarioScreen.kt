@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PerfilUsuarioScreen(
-    usuario: String = "Patricio Céspedes",
-    rol: String = "Operador de Terreno",
+    usuario: String = "Usuario",
+    rol: String = "Operador",
     tienda: String = "Bodega Pudahuel (Central)",
     onCambiarTienda: () -> Unit,
     onCerrarSesion: () -> Unit,

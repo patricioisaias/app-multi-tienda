@@ -32,10 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun MenuOperadorScreen(
+    usuario: String = "Usuario",
+    rol: String = "Operador",
     tiendaActiva: String = "Bodega Pudahuel (Central)",
     onNavigateToScanner: () -> Unit,
     onNavigateToAjuste: () -> Unit,
@@ -50,6 +53,24 @@ fun MenuOperadorScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Bienvenido, $usuario",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = rol,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -88,6 +109,19 @@ fun MenuOperadorScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Mi Perfil (arriba, con icono pequeño)
+        OpcionMenuCard(
+            titulo = "Mi Perfil",
+            descripcion = "Datos de sesión activa y opciones de desconexión",
+            icono = Icons.Default.Person,
+            colorContenedor = MaterialTheme.colorScheme.surfaceVariant,
+            colorTexto = MaterialTheme.colorScheme.onSurfaceVariant,
+            onClick = onNavigateToPerfil,
+            iconSize = 24.dp
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -138,21 +172,19 @@ fun MenuOperadorScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        OpcionMenuCard(
-            titulo = "Dashboard y Alertas de Quiebre",
-            descripcion = "Monitoreo de existencias mínimas y reportes",
-            icono = Icons.Default.Assessment,
-            onClick = onNavigateToDashboard
-        )
+        // Dashboard solo para Gerencial
+        if (rol == "Gerencial") {
+            OpcionMenuCard(
+                titulo = "Dashboard y Alertas de Quiebre",
+                descripcion = "Monitoreo de existencias mínimas y reportes",
+                icono = Icons.Default.Assessment,
+                colorContenedor = MaterialTheme.colorScheme.secondaryContainer,
+                colorTexto = MaterialTheme.colorScheme.onSecondaryContainer,
+                onClick = onNavigateToDashboard
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OpcionMenuCard(
-            titulo = "Mi Perfil de Operador",
-            descripcion = "Datos de sesión activa y opciones de desconexión",
-            icono = Icons.Default.Person,
-            onClick = onNavigateToPerfil
-        )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }
 
@@ -163,7 +195,8 @@ private fun OpcionMenuCard(
     icono: ImageVector,
     colorContenedor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceVariant,
     colorTexto: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    iconSize: Dp = 36.dp
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -181,7 +214,7 @@ private fun OpcionMenuCard(
                 imageVector = icono,
                 contentDescription = titulo,
                 tint = colorTexto,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(iconSize)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -200,4 +233,3 @@ private fun OpcionMenuCard(
         }
     }
 }
-

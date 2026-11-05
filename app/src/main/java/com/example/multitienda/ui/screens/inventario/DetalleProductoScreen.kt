@@ -25,15 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.multitienda.modelo.Producto
 import com.example.multitienda.ui.components.BotonAccion
-import com.example.multitienda.ui.theme.MultiTiendaTheme
 import com.example.multitienda.viewmodel.ProductoViewModel
 
 @Composable
@@ -51,30 +48,13 @@ fun DetalleProductoScreen(
         viewModel.cargarDetalle(productoId)
     }
 
-    DetalleContenido(
-        producto = producto,
-        onEditar = onEditar,
-        onEliminar = onEliminar,
-        onConteo = onConteo,
-        onVolver = onVolver
-    )
-}
-
-@Composable
-private fun DetalleContenido(
-    producto: Producto?,
-    onEditar: (Int) -> Unit,
-    onEliminar: (Int) -> Unit,
-    onConteo: (Int) -> Unit,
-    onVolver: () -> Unit
-) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
@@ -88,82 +68,115 @@ private fun DetalleContenido(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (producto == null) {
-            Text(
-                text = "Cargando producto...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            return@Column
-        }
+        producto?.let { productoActual ->
+            val bajoStock = productoActual.stock <= productoActual.stockMinimo
 
-        val bajoStock = producto.stock <= producto.stockMinimo
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = productoActual.nombre,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = productoActual.categoria,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FilaDato("Código de barras", productoActual.codigoBarras)
+                    FilaDato("Precio", "$${productoActual.precio}")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Stock actual",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = productoActual.stock.toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (bajoStock) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Stock mínimo",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = productoActual.stockMinimo.toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    if (bajoStock) {
+                        Text(
+                            text = "Alerta: producto bajo el stock mínimo",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            Spacer(modifier = Modifier.height(16.dp))
+
+            BotonAccion(
+                texto = "Editar Producto",
+                onClick = { onEditar(productoActual.id) }
             )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { onConteo(productoActual.id) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Registrar Conteo Físico")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { onEliminar(productoActual.id) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Text("Eliminar Producto")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onVolver,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Volver al Catálogo")
+            }
+        } ?: run {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
                 Text(
-                    text = producto.nombre,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = producto.categoria,
+                    text = "Cargando producto...",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                FilaDato("Código de barras", producto.codigoBarras)
-                FilaDato("Precio", "$${producto.precio}")
-                FilaDato("Stock actual", producto.stock.toString())
-                FilaDato("Stock mínimo", producto.stockMinimo.toString())
-                if (bajoStock) {
-                    Text(
-                        text = "Alerta: producto bajo el stock mínimo",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        BotonAccion(
-            texto = "Editar Producto",
-            onClick = { onEditar(producto.id) }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = { onConteo(producto.id) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Registrar Conteo Físico")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = { onEliminar(producto.id) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
-            )
-        ) {
-            Text("Eliminar Producto")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = onVolver,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Volver al Catálogo")
         }
     }
 }
@@ -183,28 +196,6 @@ private fun FilaDato(titulo: String, valor: String) {
             text = valor,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun DetalleProductoPreview() {
-    MultiTiendaTheme {
-        DetalleContenido(
-            producto = Producto(
-                id = 1,
-                codigoBarras = "7801234567890",
-                nombre = "Leche Entera 1L",
-                categoria = "Lácteos",
-                precio = 1290.0,
-                stock = 24,
-                stockMinimo = 10
-            ),
-            onEditar = {},
-            onEliminar = {},
-            onConteo = {},
-            onVolver = {}
         )
     }
 }

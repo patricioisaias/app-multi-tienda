@@ -1,7 +1,6 @@
 package com.example.multitienda.ui.screens.inventario
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,15 +25,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.multitienda.modelo.Producto
+import com.example.multitienda.ui.components.BotonAccion
 import com.example.multitienda.ui.components.CustomTextField
-import com.example.multitienda.ui.theme.MultiTiendaTheme
 import com.example.multitienda.viewmodel.ProductoViewModel
 
 @Composable
@@ -48,33 +45,12 @@ fun CatalogoProductosScreen(
     val productos by viewModel.productos.collectAsState()
     val busqueda by viewModel.busqueda.collectAsState()
 
-    CatalogoContenido(
-        productos = productos,
-        busqueda = busqueda,
-        onBusquedaChange = viewModel::onBusquedaChange,
-        onProductoClick = onProductoClick,
-        onCrearProducto = onCrearProducto,
-        onVerHistorial = onVerHistorial,
-        onVolver = onVolver
-    )
-}
-
-@Composable
-private fun CatalogoContenido(
-    productos: List<Producto>,
-    busqueda: String,
-    onBusquedaChange: (String) -> Unit,
-    onProductoClick: (Int) -> Unit,
-    onCrearProducto: () -> Unit,
-    onVerHistorial: () -> Unit,
-    onVolver: () -> Unit
-) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
@@ -95,7 +71,7 @@ private fun CatalogoContenido(
 
         CustomTextField(
             value = busqueda,
-            onValueChange = onBusquedaChange,
+            onValueChange = viewModel::onBusquedaChange,
             label = "Buscar por nombre",
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") }
         )
@@ -121,14 +97,14 @@ private fun CatalogoContenido(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         if (productos.isEmpty()) {
-            Box(
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentAlignment = Alignment.Center
+                contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
                 Text(
                     text = "No hay productos que coincidan con la búsqueda.",
@@ -149,40 +125,5 @@ private fun CatalogoContenido(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CatalogoProductosPreview() {
-    MultiTiendaTheme {
-        CatalogoContenido(
-            productos = listOf(
-                Producto(
-                    id = 1,
-                    codigoBarras = "7801234567890",
-                    nombre = "Leche Entera 1L",
-                    categoria = "Lácteos",
-                    precio = 1290.0,
-                    stock = 24,
-                    stockMinimo = 10
-                ),
-                Producto(
-                    id = 2,
-                    codigoBarras = "7804443332221",
-                    nombre = "Agua Mineral 500ml",
-                    categoria = "Bebidas",
-                    precio = 790.0,
-                    stock = 0,
-                    stockMinimo = 20
-                )
-            ),
-            busqueda = "",
-            onBusquedaChange = {},
-            onProductoClick = {},
-            onCrearProducto = {},
-            onVerHistorial = {},
-            onVolver = {}
-        )
     }
 }

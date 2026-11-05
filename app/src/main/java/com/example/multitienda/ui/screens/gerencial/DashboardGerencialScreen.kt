@@ -17,7 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -45,6 +45,7 @@ import com.example.multitienda.viewmodel.DashboardViewModel
  */
 @Composable
 fun DashboardGerencialScreen(
+    usuario: String = "Usuario",
     rolActual: String = "Gerencial",
     onNavigateToAlertas: () -> Unit,
     onNavigateToConfigHardware: () -> Unit,
@@ -110,6 +111,18 @@ fun DashboardGerencialScreen(
         ) {
             Column {
                 Text(
+                    text = "Bienvenido, $usuario",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = rolActual,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
                     text = "Dashboard Gerencial",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
@@ -122,8 +135,6 @@ fun DashboardGerencialScreen(
                 )
             }
             OutlinedButton(onClick = onCerrarSesion) {
-                Icon(Icons.Default.ExitToApp, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(4.dp))
                 Text("Salir")
             }
         }
