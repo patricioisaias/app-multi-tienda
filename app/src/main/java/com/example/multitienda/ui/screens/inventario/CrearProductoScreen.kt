@@ -4,8 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.multitienda.modelo.ProductoFormModel
+import com.example.multitienda.ui.screens.scanner.ScannerScreen
 import com.example.multitienda.viewmodel.ProductoViewModel
 
 @Composable
@@ -16,6 +20,7 @@ fun CrearProductoScreen(
     onVolver: () -> Unit = {}
 ) {
     val form by viewModel.form.collectAsState()
+    var mostrarEscaner by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.limpiarFormulario()
@@ -28,6 +33,18 @@ fun CrearProductoScreen(
         }
     }
 
+    if (mostrarEscaner) {
+        ScannerScreen(
+            onCodigoDetectado = { codigo ->
+                viewModel.onCodigoBarrasChange(codigo)
+                mostrarEscaner = false
+            },
+            onNavigateToManual = { mostrarEscaner = false },
+            onVolver = { mostrarEscaner = false }
+        )
+        return
+    }
+
     ProductoFormulario(
         form = form,
         onCodigoBarrasChange = viewModel::onCodigoBarrasChange,
@@ -36,6 +53,7 @@ fun CrearProductoScreen(
         onPrecioChange = viewModel::onPrecioChange,
         onStockChange = viewModel::onStockChange,
         onStockMinimoChange = viewModel::onStockMinimoChange,
+        onEscanearCodigo = { mostrarEscaner = true },
         onGuardar = { viewModel.guardar(tienda) },
         onVolver = onVolver
     )

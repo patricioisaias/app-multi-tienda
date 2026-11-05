@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.EditCalendar
@@ -48,6 +49,7 @@ fun MenuOperadorScreen(
     onNavigateToScanner: () -> Unit = {},
     onNavigateToAjuste: () -> Unit = {},
     onNavigateToConteo: () -> Unit = {},
+    onNavigateToCrearProducto: () -> Unit = {},
     onNavigateToCatalogo: () -> Unit = {},
     onNavigateToDiferencias: () -> Unit = {},
     onNavigateToAlertas: () -> Unit = {},
@@ -192,6 +194,17 @@ fun MenuOperadorScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OpcionMenuCard(
+                titulo = "Agregar Producto",
+                descripcion = "Da de alta un producto nuevo con su stock inicial",
+                icono = Icons.Default.Add,
+                colorContenedor = MaterialTheme.colorScheme.secondaryContainer,
+                colorTexto = MaterialTheme.colorScheme.onSecondaryContainer,
+                onClick = onNavigateToCrearProducto
+            )
+
             Spacer(modifier = Modifier.height(10.dp))
 
             OpcionMenuCard(

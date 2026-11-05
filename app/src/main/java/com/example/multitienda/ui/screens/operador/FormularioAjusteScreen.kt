@@ -55,14 +55,14 @@ fun FormularioAjusteScreen(
     val estado by viewModel.estado.collectAsState()
     var ajustePendiente by remember { mutableStateOf<AjustePendiente?>(null) }
     var codigo by remember { mutableStateOf(codigoInicial) }
-    var tipoMovimiento by remember { mutableStateOf("Entrada") }
+    var tipoMovimiento by remember { mutableStateOf("Salida") }
     var cantidad by remember { mutableStateOf("") }
     var motivo by remember { mutableStateOf("") }
 
     var errorCodigo by remember { mutableStateOf<String?>(null) }
     var errorCantidad by remember { mutableStateOf<String?>(null) }
 
-    val tipos = listOf("Entrada", "Salida", "Ajuste / Conteo")
+    val tipos = listOf("Salida", "Ajuste / Conteo")
 
     LaunchedEffect(estado.confirmado) {
         if (estado.confirmado) {

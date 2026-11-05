@@ -108,6 +108,9 @@ fun AppNavigation() {
                 onNavigateToConteo = {
                     navController.navigate(InventarioRoutes.CATALOGO)
                 },
+                onNavigateToCrearProducto = {
+                    navController.navigate(InventarioRoutes.CREAR)
+                },
                 onNavigateToCatalogo = {
                     navController.navigate(InventarioRoutes.CATALOGO)
                 },
