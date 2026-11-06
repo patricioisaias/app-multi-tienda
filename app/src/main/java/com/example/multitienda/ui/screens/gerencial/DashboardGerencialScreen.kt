@@ -255,7 +255,7 @@ fun DashboardGerencialScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        OutlinedButton(
+        /*  OutlinedButton(
             onClick = onNavigateToConfigHardware,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -263,6 +263,8 @@ fun DashboardGerencialScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Diagnóstico de Hardware (Cámara y Háptico)")
         }
+
+         */
     }
 }
 

@@ -93,7 +93,7 @@ fun ConfigHardwareScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "Verificación de Recursos Nativos (Rúbrica IE 2.4.1)",
+                text = "",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
