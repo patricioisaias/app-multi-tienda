@@ -225,7 +225,7 @@ class ProductoViewModel(application: Application) : AndroidViewModel(application
                 codigo = producto.codigoBarras,
                 tipo = "Conteo",
                 cantidad = diferencia,
-                motivo = motivo.ifBlank { "Conteo físico en pasillo" },
+                motivo = motivo.ifBlank { "Conteo físico" },
                 tienda = tienda
             )
             _detalle.value = producto.copy(stock = nuevoStock)
