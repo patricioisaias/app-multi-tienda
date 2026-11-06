@@ -1,4 +1,4 @@
-package com.example.multitienda.ui.screens.operador
+package com.example.multitienda.ui.screens.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MenuOperadorScreen(
+fun MenuPrincipalScreen(
     usuario: String = "Usuario",
     rol: String = "Operador",
     tiendaActiva: String = "Bodega Pudahuel (Central)",

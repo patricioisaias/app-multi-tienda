@@ -1,4 +1,4 @@
-package com.example.multitienda.ui.screens.operador
+package com.example.multitienda.ui.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

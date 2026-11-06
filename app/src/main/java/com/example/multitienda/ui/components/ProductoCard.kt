@@ -1,4 +1,4 @@
-package com.example.multitienda.ui.screens.inventario
+package com.example.multitienda.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

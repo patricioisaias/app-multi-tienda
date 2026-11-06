@@ -38,14 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.multitienda.data.local.AppDatabase
 import com.example.multitienda.data.repository.ProductoRepository
 import com.example.multitienda.modelo.Producto
 import com.example.multitienda.util.HapticFeedbackHelper
-import com.example.multitienda.viewmodel.AppDatabase
 
-/**
- * Pantalla 16: ResultadoScannerScreen (Angelo - Dispara Háptico y consulta Room)
- */
 @Composable
 fun ResultadoScannerScreen(
     codigo: String,
@@ -247,4 +244,3 @@ fun ResultadoScannerScreen(
         }
     }
 }
-

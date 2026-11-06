@@ -1,42 +1,29 @@
 package com.example.multitienda.ui.navigation
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.multitienda.ui.screens.auth.LoginScreen
+import com.example.multitienda.ui.screens.auth.SplashScreen
 import com.example.multitienda.ui.screens.gerencial.AdminTiendasScreen
 import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
-import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
 import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
 import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
 import com.example.multitienda.ui.screens.gerencial.ExportarReportesScreen
+import com.example.multitienda.ui.screens.home.MenuPrincipalScreen
+import com.example.multitienda.ui.screens.home.PerfilUsuarioScreen
+import com.example.multitienda.ui.screens.home.SeleccionTiendaScreen
 import com.example.multitienda.ui.screens.inventario.DiferenciasStockScreen
-import com.example.multitienda.ui.screens.inventario.InventarioRoutes
-import com.example.multitienda.ui.screens.inventario.inventarioNavGraph
 import com.example.multitienda.ui.screens.operador.FormularioAjusteScreen
-import com.example.multitienda.ui.screens.operador.LoginScreen
-import com.example.multitienda.ui.screens.operador.MenuOperadorScreen
-import com.example.multitienda.ui.screens.operador.PerfilUsuarioScreen
 import com.example.multitienda.ui.screens.operador.ResumenMovimientoScreen
-import com.example.multitienda.ui.screens.operador.SeleccionTiendaScreen
-import com.example.multitienda.ui.screens.operador.SplashScreen
 import com.example.multitienda.ui.screens.scanner.EntradaManualCodigoScreen
 import com.example.multitienda.ui.screens.scanner.ResultadoScannerScreen
 import com.example.multitienda.ui.screens.scanner.ScannerScreen
@@ -66,7 +53,7 @@ fun AppNavigation() {
         // 2. Login
         composable(AppRoutes.LOGIN) {
             LoginScreen(
-                onLoginSuccess = { nombre, puesto, rol ->
+                onLoginSuccess = { nombre, puesto, _ ->
                     usuarioActual = nombre
                     rolActual = puesto
                     tiendaActual = if (puesto.contains("Gerencial", ignoreCase = true) || puesto.contains("Gerente", ignoreCase = true)) {
@@ -95,7 +82,7 @@ fun AppNavigation() {
 
         // 4. Menú Principal Adaptativo por Perfil
         composable(AppRoutes.MENU) {
-            MenuOperadorScreen(
+            MenuPrincipalScreen(
                 usuario = usuarioActual,
                 rol = rolActual,
                 tiendaActiva = tiendaActual,
@@ -222,12 +209,12 @@ fun AppNavigation() {
             )
         }
 
-        // --- Catálogo y Persistencia Room (Módulo Daniel: Pantallas 8-14) ---
+        // --- Catálogo y Persistencia Room ---
         inventarioNavGraph(navController, tiendaActual)
 
-        // --- Recursos Nativos, Scanner y Gerencial (Módulo Angelo: Pantallas 15-21) ---
+        // --- Recursos Nativos, Scanner y Gerencial ---
 
-        // Pantalla 15: Scanner con CameraX y Google ML Kit
+        // Scanner con CameraX y Google ML Kit
         composable(AppRoutes.SCANNER) {
             ScannerScreen(
                 onCodigoDetectado = { codigo ->
@@ -245,7 +232,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 16: Resultado de Escaneo con Vibración Háptica y Consulta Room
+        // Resultado de Escaneo con Vibración Háptica y Consulta Room
         composable(
             route = "scan_result/{codigo}",
             arguments = listOf(navArgument("codigo") { type = NavType.StringType })
@@ -270,7 +257,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 17: Entrada Manual de Código de Barras
+        // Entrada Manual de Código de Barras
         composable("scanner_manual") {
             EntradaManualCodigoScreen(
                 onCodigoIngresado = { codigo ->
@@ -285,16 +272,13 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 18: Dashboard Gerencial (Exclusivo Gerencial)
+        // Dashboard Gerencial
         composable(AppRoutes.DASHBOARD) {
             DashboardGerencialScreen(
                 usuario = usuarioActual,
                 rolActual = rolActual,
                 onNavigateToAlertas = {
                     navController.navigate("alertas")
-                },
-                onNavigateToConfigHardware = {
-                    navController.navigate("config_hardware")
                 },
                 onVolver = {
                     navController.popBackStack()
@@ -307,7 +291,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 19: Alertas de Quiebre de Stock
+        // Alertas de Quiebre de Stock
         composable("alertas") {
             AlertasQuiebreScreen(
                 onDeclararReposicion = { id ->
@@ -319,7 +303,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 20: Declarar Reposición
+        // Declarar Reposición
         composable(
             route = "reposicion/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
@@ -334,16 +318,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 21: Diagnóstico de Hardware y Prueba de Recursos Nativos
-        composable("config_hardware") {
-            ConfigHardwareScreen(
-                onVolver = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Pantalla 22: Administración de Tiendas (Gerencial)
+        // Administración de Tiendas (Gerencial)
         composable(AppRoutes.ADMIN_TIENDAS) {
             AdminTiendasScreen(
                 onVolver = {
@@ -352,7 +327,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 23: Exportar Reportes (Gerencial)
+        // Exportar Reportes (Gerencial)
         composable(AppRoutes.EXPORTAR_REPORTES) {
             ExportarReportesScreen(
                 onVolver = {
@@ -361,7 +336,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 24: Control de Diferencias de Stock (Encargado de Bodega)
+        // Control de Diferencias de Stock (Encargado de Bodega)
         composable(AppRoutes.DIFERENCIAS_STOCK) {
             DiferenciasStockScreen(
                 onRectificar = { id ->

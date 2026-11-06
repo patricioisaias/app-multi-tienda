@@ -1,4 +1,4 @@
-package com.example.multitienda.ui.screens.inventario
+package com.example.multitienda.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,12 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.multitienda.modelo.ProductoFormModel
-import com.example.multitienda.ui.components.BotonAccion
-import com.example.multitienda.ui.components.CustomTextField
 
 @Composable
 fun ProductoFormulario(
@@ -133,11 +130,11 @@ fun ProductoFormulario(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        androidx.compose.material3.OutlinedButton(
+        OutlinedButton(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth()
         ) {
-            androidx.compose.material3.Text("Volver")
+            Text("Volver")
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.multitienda.ui.screens.operador
+package com.example.multitienda.ui.screens.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -68,4 +68,3 @@ fun SplashScreen(onNavigateToLogin: () -> Unit) {
         }
     }
 }
-

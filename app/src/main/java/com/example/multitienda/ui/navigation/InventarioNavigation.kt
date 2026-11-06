@@ -1,10 +1,17 @@
-package com.example.multitienda.ui.screens.inventario
+package com.example.multitienda.ui.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.multitienda.ui.screens.inventario.CatalogoProductosScreen
+import com.example.multitienda.ui.screens.inventario.ConfirmarEliminarScreen
+import com.example.multitienda.ui.screens.inventario.ConteoFisicoScreen
+import com.example.multitienda.ui.screens.inventario.CrearProductoScreen
+import com.example.multitienda.ui.screens.inventario.DetalleProductoScreen
+import com.example.multitienda.ui.screens.inventario.EditarProductoScreen
+import com.example.multitienda.ui.screens.inventario.HistorialMovimientosScreen
 
 object InventarioRoutes {
     const val CATALOGO = "inventario/catalogo"

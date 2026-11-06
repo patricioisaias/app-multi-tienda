@@ -1,4 +1,4 @@
-package com.example.multitienda.ui.screens.operador
+package com.example.multitienda.ui.screens.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -113,4 +113,3 @@ fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
         }
     }
 }
-

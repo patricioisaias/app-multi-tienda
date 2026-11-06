@@ -15,9 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Warning
@@ -42,15 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.multitienda.viewmodel.DashboardViewModel
 
-/**
- * Pantalla 18: DashboardGerencialScreen (Angelo - Tablero exclusivo perfil Gerencial)
- */
 @Composable
 fun DashboardGerencialScreen(
     usuario: String = "Usuario",
     rolActual: String = "Gerencial",
     onNavigateToAlertas: () -> Unit,
-    onNavigateToConfigHardware: () -> Unit,
     onVolver: () -> Unit = {},
     onCerrarSesion: () -> Unit = {},
     viewModel: DashboardViewModel = viewModel()
@@ -237,7 +231,7 @@ fun DashboardGerencialScreen(
 
         // Accesos Gerenciales
         Text(
-            text = "Acciones y Diagnóstico",
+            text = "Acciones",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
@@ -252,19 +246,6 @@ fun DashboardGerencialScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Ver Alertas de Quiebre y Reposición")
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        /*  OutlinedButton(
-            onClick = onNavigateToConfigHardware,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Build, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Diagnóstico de Hardware (Cámara y Háptico)")
-        }
-
-         */
     }
 }
 

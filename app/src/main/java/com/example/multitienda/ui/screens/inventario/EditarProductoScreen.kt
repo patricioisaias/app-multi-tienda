@@ -5,7 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.multitienda.modelo.ProductoFormModel
+import com.example.multitienda.ui.components.ProductoFormulario
 import com.example.multitienda.viewmodel.ProductoViewModel
 
 @Composable

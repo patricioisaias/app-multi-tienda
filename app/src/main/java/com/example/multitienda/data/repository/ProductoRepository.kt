@@ -1,7 +1,7 @@
 package com.example.multitienda.data.repository
 
+import com.example.multitienda.data.local.ProductoDAO
 import com.example.multitienda.modelo.Producto
-import com.example.multitienda.modelo.ProductoDAO
 import kotlinx.coroutines.flow.Flow
 
 class ProductoRepository(private val dao: ProductoDAO) {

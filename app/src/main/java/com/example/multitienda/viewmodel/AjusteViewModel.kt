@@ -3,6 +3,7 @@ package com.example.multitienda.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.multitienda.data.local.AppDatabase
 import com.example.multitienda.data.repository.MovimientoRepository
 import com.example.multitienda.data.repository.ProductoRepository
 import com.example.multitienda.modelo.Movimiento

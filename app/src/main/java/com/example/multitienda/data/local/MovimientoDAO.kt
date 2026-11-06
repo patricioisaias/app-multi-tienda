@@ -1,8 +1,9 @@
-package com.example.multitienda.modelo
+package com.example.multitienda.data.local
 
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
+import com.example.multitienda.modelo.Movimiento
 import kotlinx.coroutines.flow.Flow
 
 @Dao

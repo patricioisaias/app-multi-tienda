@@ -3,6 +3,7 @@ package com.example.multitienda.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.multitienda.data.local.AppDatabase
 import com.example.multitienda.data.repository.MovimientoRepository
 import com.example.multitienda.data.repository.ProductoRepository
 import com.example.multitienda.modelo.Movimiento
@@ -220,7 +221,7 @@ class ProductoViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val producto = productoRepository.obtenerPorId(id) ?: return@launch
             val diferencia = nuevoStock - producto.stock
-            productoRepository.actualizarStock(id, nuevoStock)
+            productoRepository.actualizarStock(producto.id, nuevoStock)
             registrarMovimiento(
                 codigo = producto.codigoBarras,
                 tipo = "Conteo",

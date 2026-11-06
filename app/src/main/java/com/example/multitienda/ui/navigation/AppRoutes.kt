@@ -6,7 +6,7 @@ object AppRoutes {
     const val SPLASH = "splash"
     const val LOGIN = "login"
     const val TIENDAS = "tiendas"
-    const val MENU = "menu_operador"
+    const val MENU = "menu_principal"
     const val PERFIL = "perfil"
     const val SCANNER = "scanner"
     const val DASHBOARD = "dashboard"

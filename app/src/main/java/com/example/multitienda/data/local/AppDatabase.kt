@@ -1,13 +1,11 @@
-package com.example.multitienda.viewmodel
+package com.example.multitienda.data.local
 
 import android.content.Context
 import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import com.example.multitienda.modelo.Movimiento
-import com.example.multitienda.modelo.MovimientoDAO
 import com.example.multitienda.modelo.Producto
-import com.example.multitienda.modelo.ProductoDAO
 
 @Database(
     entities = [Producto::class, Movimiento::class],

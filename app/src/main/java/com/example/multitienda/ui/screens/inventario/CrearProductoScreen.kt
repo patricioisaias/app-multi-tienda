@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.multitienda.modelo.ProductoFormModel
+import com.example.multitienda.ui.components.ProductoFormulario
 import com.example.multitienda.ui.screens.scanner.ScannerScreen
 import com.example.multitienda.viewmodel.ProductoViewModel
 
