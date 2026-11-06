@@ -18,3 +18,4 @@ interface MovimientoDAO {
     @Query("SELECT * FROM movimientos WHERE codigoBarras = :codigo ORDER BY fechaMillis DESC")
     fun listarPorProducto(codigo: String): Flow<List<Movimiento>>
 }
+

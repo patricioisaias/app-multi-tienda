@@ -115,3 +115,4 @@ fun NavGraphBuilder.inventarioNavGraph(
         )
     }
 }
+

@@ -144,3 +144,4 @@ fun LoginScreen(onLoginSuccess: (nombre: String, puesto: String, rol: String) ->
         )
     }
 }
+
