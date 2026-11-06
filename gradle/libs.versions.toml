@@ -10,6 +10,7 @@ kotlin = "2.2.10"
 composeBom = "2026.02.01"
 room3Common = "3.0.3"
 room3Runtime = "3.0.3"
+ksp = "2.3.6"
 navigationCompose = "2.8.4"
 camerax = "1.4.0"
 mlkitBarcode = "17.3.0"
@@ -33,6 +34,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-room3-common = { group = "androidx.room3", name = "room3-common", version.ref = "room3Common" }
 androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3Runtime" }
+androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3Runtime" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
@@ -43,4 +45,5 @@ mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning"
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

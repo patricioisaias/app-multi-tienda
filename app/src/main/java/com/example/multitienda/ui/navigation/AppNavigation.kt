@@ -1,5 +1,6 @@
 package com.example.multitienda.ui.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +21,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.multitienda.ui.screens.gerencial.AdminTiendasScreen
+import com.example.multitienda.ui.screens.gerencial.AlertasQuiebreScreen
+import com.example.multitienda.ui.screens.gerencial.ConfigHardwareScreen
+import com.example.multitienda.ui.screens.gerencial.DashboardGerencialScreen
+import com.example.multitienda.ui.screens.gerencial.DeclararReposicionScreen
+import com.example.multitienda.ui.screens.gerencial.ExportarReportesScreen
+import com.example.multitienda.ui.screens.inventario.DiferenciasStockScreen
+import com.example.multitienda.ui.screens.inventario.InventarioRoutes
+import com.example.multitienda.ui.screens.inventario.inventarioNavGraph
 import com.example.multitienda.ui.screens.operador.FormularioAjusteScreen
 import com.example.multitienda.ui.screens.operador.LoginScreen
 import com.example.multitienda.ui.screens.operador.MenuOperadorScreen
@@ -27,79 +37,113 @@ import com.example.multitienda.ui.screens.operador.PerfilUsuarioScreen
 import com.example.multitienda.ui.screens.operador.ResumenMovimientoScreen
 import com.example.multitienda.ui.screens.operador.SeleccionTiendaScreen
 import com.example.multitienda.ui.screens.operador.SplashScreen
-import com.example.multitienda.ui.view.ProductoView
+import com.example.multitienda.ui.screens.scanner.EntradaManualCodigoScreen
+import com.example.multitienda.ui.screens.scanner.ResultadoScannerScreen
+import com.example.multitienda.ui.screens.scanner.ScannerScreen
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    var tiendaActual by remember { mutableStateOf("Bodega Pudahuel (Central)") }
+    var tiendaActual by rememberSaveable { mutableStateOf("Bodega Pudahuel (Central)") }
+    var usuarioActual by rememberSaveable { mutableStateOf("Usuario") }
+    var rolActual by rememberSaveable { mutableStateOf("Operador") }
 
     NavHost(
         navController = navController,
-        startDestination = "splash"
+        startDestination = AppRoutes.SPLASH
     ) {
         // 1. Splash Screen
-        composable("splash") {
+        composable(AppRoutes.SPLASH) {
             SplashScreen(
                 onNavigateToLogin = {
-                    navController.navigate("login") {
-                        popUpTo("splash") { inclusive = true }
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(AppRoutes.SPLASH) { inclusive = true }
                     }
                 }
             )
         }
 
         // 2. Login
-        composable("login") {
+        composable(AppRoutes.LOGIN) {
             LoginScreen(
-                onLoginSuccess = { _ ->
-                    navController.navigate("tiendas") {
-                        popUpTo("login") { inclusive = true }
+                onLoginSuccess = { nombre, puesto, rol ->
+                    usuarioActual = nombre
+                    rolActual = puesto
+                    tiendaActual = if (puesto.contains("Gerencial", ignoreCase = true) || puesto.contains("Gerente", ignoreCase = true)) {
+                        "Red Comercial Multi-Tienda"
+                    } else {
+                        "Bodega Pudahuel (Central)"
+                    }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
                 }
             )
         }
 
         // 3. Selección de Tienda
-        composable("tiendas") {
+        composable(AppRoutes.TIENDAS) {
             SeleccionTiendaScreen(
                 onTiendaSeleccionada = { tienda ->
                     tiendaActual = tienda
-                    navController.navigate("menu_operador") {
-                        popUpTo("tiendas") { inclusive = true }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.TIENDAS) { inclusive = true }
                     }
                 }
             )
         }
 
-        // 4. Menú Principal del Operador
-        composable("menu_operador") {
+        // 4. Menú Principal Adaptativo por Perfil
+        composable(AppRoutes.MENU) {
             MenuOperadorScreen(
+                usuario = usuarioActual,
+                rol = rolActual,
                 tiendaActiva = tiendaActual,
                 onNavigateToScanner = {
-                    navController.navigate("scanner")
+                    navController.navigate(AppRoutes.SCANNER)
                 },
                 onNavigateToAjuste = {
-                    navController.navigate("ajuste/manual")
+                    navController.navigate(AppRoutes.ajuste("manual"))
+                },
+                onNavigateToConteo = {
+                    navController.navigate(InventarioRoutes.CATALOGO)
+                },
+                onNavigateToCrearProducto = {
+                    navController.navigate(InventarioRoutes.CREAR)
                 },
                 onNavigateToCatalogo = {
-                    navController.navigate("catalogo")
+                    navController.navigate(InventarioRoutes.CATALOGO)
+                },
+                onNavigateToDiferencias = {
+                    navController.navigate(AppRoutes.DIFERENCIAS_STOCK)
+                },
+                onNavigateToAlertas = {
+                    navController.navigate("alertas")
                 },
                 onNavigateToDashboard = {
-                    navController.navigate("dashboard")
+                    navController.navigate(AppRoutes.DASHBOARD)
+                },
+                onNavigateToHistorial = {
+                    navController.navigate(InventarioRoutes.HISTORIAL)
+                },
+                onNavigateToAdminTiendas = {
+                    navController.navigate(AppRoutes.ADMIN_TIENDAS)
+                },
+                onNavigateToExportar = {
+                    navController.navigate(AppRoutes.EXPORTAR_REPORTES)
                 },
                 onNavigateToPerfil = {
-                    navController.navigate("perfil")
+                    navController.navigate(AppRoutes.PERFIL)
                 },
                 onCambiarTienda = {
-                    navController.navigate("tiendas")
+                    navController.navigate(AppRoutes.TIENDAS)
                 }
             )
         }
 
         // 5. Formulario de Ajuste
         composable(
-            route = "ajuste/{codigo}",
+            route = AppRoutes.AJUSTE,
             arguments = listOf(navArgument("codigo") { type = NavType.StringType })
         ) { backStackEntry ->
             val codigoArg = backStackEntry.arguments?.getString("codigo") ?: ""
@@ -107,12 +151,15 @@ fun AppNavigation() {
 
             FormularioAjusteScreen(
                 codigoInicial = codigoLimpio,
+                tienda = tiendaActual,
                 onAbrirScanner = {
-                    navController.navigate("scanner")
+                    navController.navigate(AppRoutes.SCANNER)
                 },
                 onAjusteConfirmado = { codigo, tipo, cantidad, motivo ->
                     val motivoSeguro = if (motivo.isBlank()) "SinObservacion" else motivo
-                    navController.navigate("resumen/$codigo/$tipo/$cantidad/$motivoSeguro")
+                    navController.navigate(
+                        AppRoutes.resumen(codigo, tipo, cantidad, motivoSeguro)
+                    )
                 },
                 onVolver = {
                     navController.popBackStack()
@@ -122,7 +169,7 @@ fun AppNavigation() {
 
         // 6. Resumen de Movimiento Confirmado
         composable(
-            route = "resumen/{codigo}/{tipo}/{cantidad}/{motivo}",
+            route = AppRoutes.RESUMEN,
             arguments = listOf(
                 navArgument("codigo") { type = NavType.StringType },
                 navArgument("tipo") { type = NavType.StringType },
@@ -130,10 +177,10 @@ fun AppNavigation() {
                 navArgument("motivo") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val codigo = backStackEntry.arguments?.getString("codigo") ?: ""
-            val tipo = backStackEntry.arguments?.getString("tipo") ?: ""
+            val codigo = Uri.decode(backStackEntry.arguments?.getString("codigo") ?: "")
+            val tipo = Uri.decode(backStackEntry.arguments?.getString("tipo") ?: "")
             val cantidad = backStackEntry.arguments?.getInt("cantidad") ?: 0
-            val motivoRaw = backStackEntry.arguments?.getString("motivo") ?: ""
+            val motivoRaw = Uri.decode(backStackEntry.arguments?.getString("motivo") ?: "")
             val motivo = if (motivoRaw == "SinObservacion") "" else motivoRaw
 
             ResumenMovimientoScreen(
@@ -143,27 +190,29 @@ fun AppNavigation() {
                 motivo = motivo,
                 tienda = tiendaActual,
                 onNuevoAjuste = {
-                    navController.navigate("ajuste/manual") {
-                        popUpTo("menu_operador")
+                    navController.navigate(AppRoutes.ajuste("manual")) {
+                        popUpTo(AppRoutes.MENU)
                     }
                 },
                 onVolverMenu = {
-                    navController.navigate("menu_operador") {
-                        popUpTo("menu_operador") { inclusive = true }
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.MENU) { inclusive = true }
                     }
                 }
             )
         }
 
         // 7. Perfil de Usuario
-        composable("perfil") {
+        composable(AppRoutes.PERFIL) {
             PerfilUsuarioScreen(
+                usuario = usuarioActual,
+                rol = rolActual,
                 tienda = tiendaActual,
                 onCambiarTienda = {
-                    navController.navigate("tiendas")
+                    navController.navigate(AppRoutes.TIENDAS)
                 },
                 onCerrarSesion = {
-                    navController.navigate("login") {
+                    navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
@@ -173,85 +222,155 @@ fun AppNavigation() {
             )
         }
 
-        // --- Rutas de Daniel y Angelo (Integradas) ---
+        // --- Catálogo y Persistencia Room (Módulo Daniel: Pantallas 8-14) ---
+        inventarioNavGraph(navController, tiendaActual)
 
-        // Catálogo (Usa la vista ProductoView que Daniel ya creó)
-        composable("catalogo") {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text("← Volver al Menú")
+        // --- Recursos Nativos, Scanner y Gerencial (Módulo Angelo: Pantallas 15-21) ---
+
+        // Pantalla 15: Scanner con CameraX y Google ML Kit
+        composable(AppRoutes.SCANNER) {
+            ScannerScreen(
+                onCodigoDetectado = { codigo ->
+                    val codigoEncoded = Uri.encode(codigo)
+                    navController.navigate("scan_result/$codigoEncoded") {
+                        popUpTo(AppRoutes.SCANNER) { inclusive = true }
+                    }
+                },
+                onNavigateToManual = {
+                    navController.navigate("scanner_manual")
+                },
+                onVolver = {
+                    navController.popBackStack()
                 }
-                ProductoView()
-            }
+            )
         }
 
-        // Dashboard (Ruta para Angelo)
-        composable("dashboard") {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Dashboard y Alertas de Quiebre",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = "(Módulo en desarrollo por Angelo)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    Text("Volver")
+        // Pantalla 16: Resultado de Escaneo con Vibración Háptica y Consulta Room
+        composable(
+            route = "scan_result/{codigo}",
+            arguments = listOf(navArgument("codigo") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val codigo = Uri.decode(backStackEntry.arguments?.getString("codigo") ?: "")
+            ResultadoScannerScreen(
+                codigo = codigo,
+                onAjustarStock = { cod ->
+                    val codEncoded = Uri.encode(cod)
+                    navController.navigate("ajuste/$codEncoded")
+                },
+                onEscanearOtro = {
+                    navController.navigate("scanner") {
+                        popUpTo("scan_result/{codigo}") { inclusive = true }
+                    }
+                },
+                onVolverMenu = {
+                    navController.navigate(AppRoutes.MENU) {
+                        popUpTo(AppRoutes.MENU) { inclusive = true }
+                    }
                 }
-            }
+            )
         }
 
-        // Scanner (Ruta para Angelo)
-        composable("scanner") {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Lector de Códigos de Barra",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = "(Módulo de CameraX en desarrollo por Angelo)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = {
-                        // Simulación de código escaneado para pruebas
-                        navController.navigate("ajuste/780123456789") {
-                            popUpTo("scanner") { inclusive = true }
-                        }
-                    },
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    Text("Simular Escaneo Código '780123456789'")
+        // Pantalla 17: Entrada Manual de Código de Barras
+        composable("scanner_manual") {
+            EntradaManualCodigoScreen(
+                onCodigoIngresado = { codigo ->
+                    val codigoEncoded = Uri.encode(codigo)
+                    navController.navigate("scan_result/$codigoEncoded") {
+                        popUpTo("scanner_manual") { inclusive = true }
+                    }
+                },
+                onVolver = {
+                    navController.popBackStack()
                 }
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text("Cancelar")
+            )
+        }
+
+        // Pantalla 18: Dashboard Gerencial (Exclusivo Gerencial)
+        composable(AppRoutes.DASHBOARD) {
+            DashboardGerencialScreen(
+                usuario = usuarioActual,
+                rolActual = rolActual,
+                onNavigateToAlertas = {
+                    navController.navigate("alertas")
+                },
+                onNavigateToConfigHardware = {
+                    navController.navigate("config_hardware")
+                },
+                onVolver = {
+                    navController.popBackStack()
+                },
+                onCerrarSesion = {
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
-            }
+            )
+        }
+
+        // Pantalla 19: Alertas de Quiebre de Stock
+        composable("alertas") {
+            AlertasQuiebreScreen(
+                onDeclararReposicion = { id ->
+                    navController.navigate("reposicion/$id")
+                },
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 20: Declarar Reposición
+        composable(
+            route = "reposicion/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val prodId = backStackEntry.arguments?.getInt("id") ?: 0
+            DeclararReposicionScreen(
+                productoId = prodId,
+                tiendaActiva = tiendaActual,
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 21: Diagnóstico de Hardware y Prueba de Recursos Nativos
+        composable("config_hardware") {
+            ConfigHardwareScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 22: Administración de Tiendas (Gerencial)
+        composable(AppRoutes.ADMIN_TIENDAS) {
+            AdminTiendasScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 23: Exportar Reportes (Gerencial)
+        composable(AppRoutes.EXPORTAR_REPORTES) {
+            ExportarReportesScreen(
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla 24: Control de Diferencias de Stock (Encargado de Bodega)
+        composable(AppRoutes.DIFERENCIAS_STOCK) {
+            DiferenciasStockScreen(
+                onRectificar = { id ->
+                    navController.navigate(InventarioRoutes.conteo(id))
+                },
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
-
