@@ -77,6 +77,21 @@ En [`AndroidManifest.xml`](file:///c:/Users/patri/AndroidStudioProjects/MultiTie
 
 ---
 
+### 1.5 Cómo Levantar el Proyecto en Android Studio Rabbit 2 y Rabbit 1 (PCs del Duoc)
+
+* **En Android Studio Rabbit 2 (Configuración por defecto):**
+  * Abrir el proyecto, ejecutar **Sync Project with Gradle Files** (`Ctrl + Shift + O`) y presionar **Run 'app'** (`Shift + F10`).
+* **En PCs de Laboratorio Duoc UC (Android Studio Rabbit 1):**
+  * Como el proyecto tiene configurado `agp = "9.5.0"` (de Rabbit 2), al abrirlo en Rabbit 1 aparecerá el aviso:  
+    `The project is using an incompatible version (AGP 9.5.0) of the Android Gradle plugin. Latest supported version is AGP X.X.X`
+  * **Paso 1 (`gradle/libs.versions.toml`):** Abrir [`libs.versions.toml`](file:///c:/Users/patri/AndroidStudioProjects/MultiTienda/gradle/libs.versions.toml#L2) y en la **línea 2** cambiar `agp = "9.5.0"` por la versión exacta que indique el mensaje de Rabbit 1 (ej. `agp = "9.4.0"` o `"9.1.0"`).
+  * **Paso 2 (`gradle-wrapper.properties`):** Si Rabbit 1 pide bajar la versión de `gradle-9.6.0-bin.zip` en [`gradle-wrapper.properties`](file:///c:/Users/patri/AndroidStudioProjects/MultiTienda/gradle/wrapper/gradle-wrapper.properties#L4-L5), **borrar la línea 4 (`distributionSha256Sum=...`)** para que no falle la validación de hash SHA-256.
+  * **Paso 3 (`app/build.gradle.kts` y SDK 37):**
+    * Si al bajar el AGP se marca en rojo el bloque `optimization { ... }` en [`build.gradle.kts`](file:///c:/Users/patri/AndroidStudioProjects/MultiTienda/app/build.gradle.kts#L25-L28), reemplazarlo por `isMinifyEnabled = false`.
+    * Si el PC del Duoc no tiene instalado el **SDK 37**, ir a **Tools ➔ SDK Manager**, marcar **Android API 37** y darle a **Apply** (no requiere permisos de administrador).
+
+---
+
 ## Capítulo 2: Estructura de Carpetas y Archivos
 
 El código fuente se ubica en `app/src/main/java/com/example/multitienda/` y sigue una estructura modular por capas y dominios:

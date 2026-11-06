@@ -122,17 +122,44 @@ com.example.multitienda/
 
 ---
 
-## Pasos para Ejecutar el Proyecto
+## Pasos para Levantar el Proyecto (Android Studio Rabbit 2 y Rabbit 1 en Duoc UC)
 
-1. **Requisitos Previos:**
-   - Android Studio (Ladybug o superior).
-   - **Gradle JDK:** Configurar **JBR 17** o **JBR 21** embebido de Android Studio en `Settings -> Build, Execution, Deployment -> Build Tools -> Gradle -> Gradle JDK`.
-   - Dispositivo físico Android 7.0+ (`minSdk 24`) o emulador Android configurado.
-2. **Clonar el Repositorio:**
+### Opción A: En Android Studio Rabbit 2 (Configuración por Defecto)
+1. Clonar el repositorio:
    ```bash
    git clone https://github.com/patricioisaias/app-multi-tienda.git
    ```
-3. **Sincronizar y Ejecutar:**
-   - Abrir la carpeta del proyecto en Android Studio.
-   - Ejecutar **Sync Project with Gradle Files**.
-   - Presionar **Run 'app'** (`Shift + F10`).
+2. Abrir la carpeta del proyecto en **Android Studio Rabbit 2**.
+3. Ejecutar **Sync Project with Gradle Files** (`Ctrl + Shift + O`) y presionar **Run 'app'** (`Shift + F10`).
+
+---
+
+### Opción B: En PCs de Laboratorio Duoc UC (Android Studio Rabbit 1)
+El proyecto viene configurado con **`agp = "9.5.0"`** (versión de Rabbit 2). Al abrirlo en un PC del Duoc con **Rabbit 1**, Android Studio mostrará un mensaje indicando la versión máxima de AGP que soporta ese equipo:
+> `The project is using an incompatible version (AGP 9.5.0) of the Android Gradle plugin. Latest supported version is AGP X.X.X`
+
+Sigue estos **3 pasos rápidos** para levantarlo en **Rabbit 1**:
+
+1. **Ajustar la versión de `agp` en `gradle/libs.versions.toml`:**
+   Abre `gradle/libs.versions.toml` y en la **línea 2** reemplaza `"9.5.0"` por la versión exacta que pida el mensaje de Rabbit 1 (por ejemplo `"9.4.0"` o `"9.1.0"`):
+   ```toml
+   [versions]
+   agp = "9.4.0" # <-- Poner la versión "Latest supported version" que indique Rabbit 1
+   ```
+2. **Revisar `gradle/wrapper/gradle-wrapper.properties` (solo si pide bajar Gradle):**
+   Si Rabbit 1 solicita cambiar `gradle-9.6.0-bin.zip` por una versión anterior en `distributionUrl`, **borra la línea 4 (`distributionSha256Sum=...`)** para evitar errores de verificación de hash SHA-256:
+   ```properties
+   # Borrar o comentar distributionSha256Sum si cambias la versión de gradle-9.6.0-bin.zip
+   distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.0-bin.zip
+   ```
+3. **Verificar `app/build.gradle.kts` y SDK 37:**
+   - Si la versión de AGP de Rabbit 1 marca en rojo el bloque `optimization { ... }` dentro de `buildTypes.release` (líneas 25–28 de `app/build.gradle.kts`), cámbialo por:
+     ```kotlin
+     buildTypes {
+         release {
+             isMinifyEnabled = false
+         }
+     }
+     ```
+   - Si el PC del laboratorio no tiene descargado **Android SDK Platform 37**, ve a **Tools ➔ SDK Manager**, marca la casilla **Android API 37** y presiona **Apply** (se instala en la carpeta del usuario sin pedir permisos de administrador).
+   - Presiona **Sync Project with Gradle Files** (ícono del elefante) y ejecuta la app.
