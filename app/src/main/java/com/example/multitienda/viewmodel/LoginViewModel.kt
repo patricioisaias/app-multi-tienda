@@ -29,10 +29,10 @@ private val PASSWORDS = setOf("1234", "123456", "admin123")
 private val USUARIOS = mapOf(
     "test1@bexai.cl" to LoginCredenciales("Patricio Céspedes", "Operador de Terreno", "Operador"),
     "test2@bexai.cl" to LoginCredenciales("Daniel Aedo", "Encargado de Bodega", "Bodega"),
-    "test3@bexai.cl" to LoginCredenciales("Angelo Valenzuela", "Gerencial", "Gerencial"),
+    "test3@bexai.cl" to LoginCredenciales("Angelo Ponce", "Gerencial", "Gerencial"),
     "operador@bexai.cl" to LoginCredenciales("Patricio Céspedes", "Operador de Terreno", "Operador"),
     "bodega@bexai.cl" to LoginCredenciales("Daniel Aedo", "Encargado de Bodega", "Bodega"),
-    "gerente@bexai.cl" to LoginCredenciales("Angelo Valenzuela", "Gerencial", "Gerencial")
+    "gerente@bexai.cl" to LoginCredenciales("Angelo Ponce", "Gerencial", "Gerencial")
 )
 
 class LoginViewModel : ViewModel() {
