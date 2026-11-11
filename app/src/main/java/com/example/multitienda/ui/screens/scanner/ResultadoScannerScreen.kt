@@ -54,13 +54,18 @@ fun ResultadoScannerScreen(
     var productoEncontrado by remember { mutableStateOf<Producto?>(null) }
     var busquedaFinalizada by remember { mutableStateOf(false) }
 
-    // Disparar vibración háptica al ingresar con el código leído
+    // Disparar vibración háptica acorde al resultado de la búsqueda en Room
     LaunchedEffect(codigo) {
-        HapticFeedbackHelper.vibrarExito(context)
         val dao = AppDatabase.getDatabase(context).productoDAO()
         val repo = ProductoRepository(dao)
-        productoEncontrado = repo.obtenerPorCodigo(codigo)
+        val prod = repo.obtenerPorCodigo(codigo)
+        productoEncontrado = prod
         busquedaFinalizada = true
+        if (prod == null || prod.stock <= prod.stockMinimo) {
+            HapticFeedbackHelper.vibrarAlerta(context)
+        } else {
+            HapticFeedbackHelper.vibrarExito(context)
+        }
     }
 
     Column(
@@ -201,7 +206,7 @@ fun ResultadoScannerScreen(
                                 color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                             Text(
-                                text = "Puedes registrar este código asociándolo a un nuevo ajuste o creándolo en catálogo.",
+                                text = "Este código aún no ha sido dado de alta en el inventario por el Encargado de Bodega.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
@@ -213,17 +218,19 @@ fun ResultadoScannerScreen(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Botones de acción
-        Button(
-            onClick = { onAjustarStock(codigo) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.EditCalendar, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Registrar Ajuste de Stock")
-        }
+        // Solo permitir registrar ajuste si el producto existe en el catálogo
+        if (productoEncontrado != null) {
+            Button(
+                onClick = { onAjustarStock(codigo) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.EditCalendar, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Registrar Ajuste de Stock")
+            }
 
-        Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+        }
 
         OutlinedButton(
             onClick = onEscanearOtro,

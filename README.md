@@ -60,7 +60,8 @@ com.example.multitienda/
 │   │   └── MovimientoDAO.kt               # @Dao consultas SQL de movimientos
 │   └── repository/                        # Repositorios (Single Source of Truth)
 │       ├── ProductoRepository.kt          # Gestión de productos y semilla inicial
-│       └── MovimientoRepository.kt        # Gestión de historial de transacciones
+│       ├── MovimientoRepository.kt        # Gestión de historial de transacciones
+│       └── TiendaRepository.kt            # Persistencia de tiendas habilitadas/suspendidas
 ├── modelo/                                # Entidades y Modelos de Estado
 │   ├── Producto.kt                        # @Entity tabla "productos"
 │   ├── Movimiento.kt                      # @Entity tabla "movimientos"

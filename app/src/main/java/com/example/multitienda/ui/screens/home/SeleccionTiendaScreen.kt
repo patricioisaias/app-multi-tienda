@@ -14,43 +14,59 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-data class TiendaInfo(val id: String, val nombre: String, val direccion: String, val estado: String)
+import com.example.multitienda.data.repository.TiendaRepository
 
 @Composable
-fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
-    val tiendas = listOf(
-        TiendaInfo("T-01", "Bodega Pudahuel (Central)", "Parque Enea #1240", "Operativa"),
-        TiendaInfo("T-02", "Sucursal Santiago Centro", "Av. Libertador B. O'Higgins #450", "Operativa"),
-        TiendaInfo("T-03", "Tienda Providencia", "Av. Providencia #1890", "Operativa"),
-        TiendaInfo("T-04", "Bodega Logística Sur", "Camino Nos #500, San Bernardo", "Operativa")
-    )
+fun SeleccionTiendaScreen(
+    onTiendaSeleccionada: (String) -> Unit,
+    onVolver: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    val tiendas by TiendaRepository.tiendas.collectAsState()
+
+    LaunchedEffect(Unit) {
+        TiendaRepository.cargarTiendas(context)
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onVolver != null) {
+                IconButton(onClick = onVolver) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                }
+            }
+            Text(
+                text = "Seleccionar Sucursal Activa",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         Text(
-            text = "Seleccionar Sucursal Activa",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Indique la tienda o bodega donde realizará los registros",
+            text = "Indique la tienda o bodega habilitada donde realizará los registros",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -59,12 +75,23 @@ fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(tiendas) { tienda ->
+            items(tiendas, key = { it.id }) { tienda ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onTiendaSeleccionada(tienda.nombre) },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        .then(
+                            if (tienda.habilitada) {
+                                Modifier.clickable { onTiendaSeleccionada(tienda.nombre) }
+                            } else {
+                                Modifier
+                            }
+                        ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (tienda.habilitada)
+                            MaterialTheme.colorScheme.surfaceVariant
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    )
                 ) {
                     Row(
                         modifier = Modifier
@@ -80,7 +107,7 @@ fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
                             Icon(
                                 imageVector = Icons.Default.Store,
                                 contentDescription = "Tienda",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = if (tienda.habilitada) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.size(36.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -88,7 +115,8 @@ fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
                                 Text(
                                     text = tienda.nombre,
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (tienda.habilitada) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = tienda.direccion,
@@ -96,16 +124,17 @@ fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = "Estado: ${tienda.estado}",
+                                    text = if (tienda.habilitada) "Estado: Operativa" else "Estado: Suspendida por Gerencia",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (tienda.habilitada) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                                 )
                             }
                         }
                         Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Seleccionar",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            imageVector = if (tienda.habilitada) Icons.Default.ChevronRight else Icons.Default.Block,
+                            contentDescription = if (tienda.habilitada) "Seleccionar" else "Suspendida",
+                            tint = if (tienda.habilitada) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -113,4 +142,3 @@ fun SeleccionTiendaScreen(onTiendaSeleccionada: (String) -> Unit) {
         }
     }
 }
-

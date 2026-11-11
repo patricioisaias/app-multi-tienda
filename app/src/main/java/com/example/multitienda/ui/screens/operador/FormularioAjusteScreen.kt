@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.multitienda.ui.components.BotonAccion
 import com.example.multitienda.ui.components.CustomTextField
+import com.example.multitienda.ui.screens.scanner.ScannerScreen
 import com.example.multitienda.viewmodel.AjusteViewModel
 
 private data class AjustePendiente(
@@ -47,22 +48,23 @@ private data class AjustePendiente(
 fun FormularioAjusteScreen(
     codigoInicial: String = "",
     tienda: String = "",
-    onAbrirScanner: () -> Unit,
+    onAbrirScanner: () -> Unit = {},
     onAjusteConfirmado: (codigo: String, tipo: String, cantidad: Int, motivo: String) -> Unit,
     onVolver: () -> Unit,
     viewModel: AjusteViewModel = viewModel()
 ) {
     val estado by viewModel.estado.collectAsState()
     var ajustePendiente by remember { mutableStateOf<AjustePendiente?>(null) }
-    var codigo by remember { mutableStateOf(codigoInicial) }
-    var tipoMovimiento by remember { mutableStateOf("Salida") }
+    var codigo by remember(codigoInicial) { mutableStateOf(codigoInicial) }
+    var tipoMovimiento by remember { mutableStateOf("Entrada") }
     var cantidad by remember { mutableStateOf("") }
     var motivo by remember { mutableStateOf("") }
+    var mostrarEscaner by remember { mutableStateOf(false) }
 
     var errorCodigo by remember { mutableStateOf<String?>(null) }
     var errorCantidad by remember { mutableStateOf<String?>(null) }
 
-    val tipos = listOf("Salida", "Ajuste / Conteo")
+    val tipos = listOf("Entrada", "Salida", "Ajuste / Conteo")
 
     LaunchedEffect(estado.confirmado) {
         if (estado.confirmado) {
@@ -79,6 +81,20 @@ fun FormularioAjusteScreen(
         }
     }
 
+    if (mostrarEscaner) {
+        ScannerScreen(
+            onCodigoDetectado = { codigoEscaneado ->
+                codigo = codigoEscaneado
+                errorCodigo = null
+                viewModel.limpiarError()
+                mostrarEscaner = false
+            },
+            onNavigateToManual = { mostrarEscaner = false },
+            onVolver = { mostrarEscaner = false }
+        )
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -92,7 +108,7 @@ fun FormularioAjusteScreen(
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Actualice existencias en la sucursal activa",
+            text = "Actualice existencias en la sucursal activa: $tienda",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -117,7 +133,7 @@ fun FormularioAjusteScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             OutlinedButton(
-                onClick = onAbrirScanner,
+                onClick = { mostrarEscaner = true },
                 modifier = Modifier.padding(top = 4.dp)
             ) {
                 Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear")
@@ -141,6 +157,7 @@ fun FormularioAjusteScreen(
                     selected = tipoMovimiento == tipo,
                     onClick = {
                         tipoMovimiento = tipo
+                        errorCantidad = null
                         viewModel.limpiarError()
                     },
                     label = { Text(tipo) }
@@ -157,7 +174,7 @@ fun FormularioAjusteScreen(
                 errorCantidad = null
                 viewModel.limpiarError()
             },
-            label = "Cantidad a Registrar",
+            label = if (tipoMovimiento == "Ajuste / Conteo") "Nuevo Stock Contado" else "Cantidad a Registrar",
             isError = errorCantidad != null,
             errorMessage = errorCantidad,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -193,8 +210,13 @@ fun FormularioAjusteScreen(
                     valido = false
                 }
                 val cantInt = cantidad.toIntOrNull()
-                if (cantInt == null || cantInt <= 0) {
-                    errorCantidad = "Ingrese una cantidad válida mayor a 0"
+                val esConteo = tipoMovimiento == "Ajuste / Conteo"
+                if (cantInt == null || (!esConteo && cantInt <= 0) || (esConteo && cantInt < 0)) {
+                    errorCantidad = if (esConteo) {
+                        "Ingrese una cantidad válida (0 o más)"
+                    } else {
+                        "Ingrese una cantidad válida mayor a 0"
+                    }
                     valido = false
                 }
 

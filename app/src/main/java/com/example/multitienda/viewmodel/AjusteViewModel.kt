@@ -41,8 +41,11 @@ class AjusteViewModel(application: Application) : AndroidViewModel(application) 
         motivo: String,
         tienda: String
     ) {
-        if (cantidad <= 0) {
-            _estado.value = AjusteEstado(error = "Ingrese una cantidad válida mayor a 0")
+        val esConteo = tipo == "Ajuste / Conteo"
+        if ((!esConteo && cantidad <= 0) || (esConteo && cantidad < 0)) {
+            _estado.value = AjusteEstado(
+                error = if (esConteo) "Ingrese una cantidad válida (0 o más)" else "Ingrese una cantidad válida mayor a 0"
+            )
             return
         }
 

@@ -30,10 +30,12 @@ object InventarioRoutes {
 
 fun NavGraphBuilder.inventarioNavGraph(
     navController: NavHostController,
-    tienda: String = ""
+    tienda: String = "",
+    rol: String = "Bodega"
 ) {
     composable(InventarioRoutes.CATALOGO) {
         CatalogoProductosScreen(
+            rol = rol,
             onProductoClick = { id ->
                 navController.navigate(InventarioRoutes.detalle(id))
             },
@@ -54,6 +56,7 @@ fun NavGraphBuilder.inventarioNavGraph(
         val id = backStackEntry.arguments?.getInt("id") ?: 0
         DetalleProductoScreen(
             productoId = id,
+            rol = rol,
             onEditar = { navController.navigate(InventarioRoutes.editar(it)) },
             onEliminar = { navController.navigate(InventarioRoutes.eliminar(it)) },
             onConteo = { navController.navigate(InventarioRoutes.conteo(it)) },
@@ -115,4 +118,3 @@ fun NavGraphBuilder.inventarioNavGraph(
         )
     }
 }
-

@@ -106,7 +106,8 @@ com.example.multitienda/
 │   │   └── MovimientoDAO.kt               # @Dao consultas SQL para movimientos
 │   └── repository/                        # CAPA REPOSITORY: Mediador entre DAOs y ViewModels
 │       ├── ProductoRepository.kt          # Lógica de acceso a productos + semilla inicial (6 productos)
-│       └── MovimientoRepository.kt        # Lógica de acceso al historial de movimientos
+│       ├── MovimientoRepository.kt        # Lógica de acceso al historial de movimientos
+│       └── TiendaRepository.kt            # Estado persistente de tiendas habilitadas/suspendidas
 ├── modelo/                                # CAPA MODEL: Entidades Room y Modelos de Estado
 │   ├── Producto.kt                        # @Entity tabla "productos"
 │   ├── Movimiento.kt                      # @Entity tabla "movimientos"

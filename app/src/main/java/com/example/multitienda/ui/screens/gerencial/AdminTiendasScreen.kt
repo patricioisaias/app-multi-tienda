@@ -14,13 +14,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,34 +27,29 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-data class TiendaAdmin(
-    val id: String,
-    val nombre: String,
-    val direccion: String,
-    val tipo: String,
-    var habilitada: Boolean
-)
+import com.example.multitienda.data.repository.TiendaRepository
+import com.example.multitienda.util.HapticFeedbackHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminTiendasScreen(onVolver: () -> Unit) {
-    val tiendas = remember {
-        mutableStateListOf(
-            TiendaAdmin("T-01", "Bodega Pudahuel (Central)", "Parque Enea #1240", "Bodega Principal", true),
-            TiendaAdmin("T-02", "Sucursal Santiago Centro", "Av. Libertador B. O'Higgins #450", "Tienda Retail", true),
-            TiendaAdmin("T-03", "Tienda Providencia", "Av. Providencia #1890", "Tienda Retail", true),
-            TiendaAdmin("T-04", "Bodega Logística Sur", "Camino Nos #500, San Bernardo", "Bodega Satélite", true)
-        )
+    val context = LocalContext.current
+    val tiendas by TiendaRepository.tiendas.collectAsState()
+    var mensajeRestriccion by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        TiendaRepository.cargarTiendas(context)
     }
 
     Scaffold(
@@ -89,12 +82,39 @@ fun AdminTiendasScreen(onVolver: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            mensajeRestriccion?.let { aviso ->
+                Spacer(modifier = Modifier.height(10.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = aviso,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(tiendas) { tienda ->
+                items(tiendas, key = { it.id }) { tienda ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -144,9 +164,16 @@ fun AdminTiendasScreen(onVolver: () -> Unit) {
                             Switch(
                                 checked = tienda.habilitada,
                                 onCheckedChange = { nuevoEstado ->
-                                    val index = tiendas.indexOf(tienda)
-                                    if (index != -1) {
-                                        tiendas[index] = tienda.copy(habilitada = nuevoEstado)
+                                    val cambiado = TiendaRepository.cambiarEstadoTienda(
+                                        context = context,
+                                        id = tienda.id,
+                                        nuevoEstado = nuevoEstado
+                                    )
+                                    if (!cambiado) {
+                                        HapticFeedbackHelper.vibrarAlerta(context)
+                                        mensajeRestriccion = "Debe mantener al menos una sucursal habilitada para operar."
+                                    } else {
+                                        mensajeRestriccion = null
                                     }
                                 }
                             )
@@ -157,4 +184,3 @@ fun AdminTiendasScreen(onVolver: () -> Unit) {
         }
     }
 }
-

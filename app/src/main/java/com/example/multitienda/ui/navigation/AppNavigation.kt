@@ -2,15 +2,19 @@ package com.example.multitienda.ui.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.multitienda.data.repository.TiendaRepository
 import com.example.multitienda.ui.screens.auth.LoginScreen
 import com.example.multitienda.ui.screens.auth.SplashScreen
 import com.example.multitienda.ui.screens.gerencial.AdminTiendasScreen
@@ -30,10 +34,26 @@ import com.example.multitienda.ui.screens.scanner.ScannerScreen
 
 @Composable
 fun AppNavigation() {
+    val context = LocalContext.current
     val navController = rememberNavController()
     var tiendaActual by rememberSaveable { mutableStateOf("Bodega Pudahuel (Central)") }
     var usuarioActual by rememberSaveable { mutableStateOf("Usuario") }
     var rolActual by rememberSaveable { mutableStateOf("Operador") }
+
+    val tiendas by TiendaRepository.tiendas.collectAsState()
+
+    // Cargar estado persistido de tiendas habilitadas al iniciar
+    LaunchedEffect(Unit) {
+        TiendaRepository.cargarTiendas(context)
+    }
+
+    // Si la tienda actual fue suspendida por el perfil Gerencial, reasignar a la primera tienda habilitada
+    LaunchedEffect(tiendas, rolActual) {
+        val esGerencial = rolActual.contains("Gerencial", ignoreCase = true) || rolActual.contains("Gerente", ignoreCase = true)
+        if (!esGerencial) {
+            tiendaActual = TiendaRepository.obtenerTiendaActivaValida(context, tiendaActual)
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -56,10 +76,11 @@ fun AppNavigation() {
                 onLoginSuccess = { nombre, puesto, _ ->
                     usuarioActual = nombre
                     rolActual = puesto
-                    tiendaActual = if (puesto.contains("Gerencial", ignoreCase = true) || puesto.contains("Gerente", ignoreCase = true)) {
+                    val esGerencial = puesto.contains("Gerencial", ignoreCase = true) || puesto.contains("Gerente", ignoreCase = true)
+                    tiendaActual = if (esGerencial) {
                         "Red Comercial Multi-Tienda"
                     } else {
-                        "Bodega Pudahuel (Central)"
+                        TiendaRepository.obtenerTiendaActivaValida(context, tiendaActual)
                     }
                     navController.navigate(AppRoutes.MENU) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
@@ -76,6 +97,9 @@ fun AppNavigation() {
                     navController.navigate(AppRoutes.MENU) {
                         popUpTo(AppRoutes.TIENDAS) { inclusive = true }
                     }
+                },
+                onVolver = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -191,12 +215,17 @@ fun AppNavigation() {
 
         // 7. Perfil de Usuario
         composable(AppRoutes.PERFIL) {
+            val esGerencial = rolActual.contains("Gerencial", ignoreCase = true) || rolActual.contains("Gerente", ignoreCase = true)
             PerfilUsuarioScreen(
                 usuario = usuarioActual,
                 rol = rolActual,
                 tienda = tiendaActual,
                 onCambiarTienda = {
-                    navController.navigate(AppRoutes.TIENDAS)
+                    if (esGerencial) {
+                        navController.navigate(AppRoutes.ADMIN_TIENDAS)
+                    } else {
+                        navController.navigate(AppRoutes.TIENDAS)
+                    }
                 },
                 onCerrarSesion = {
                     navController.navigate(AppRoutes.LOGIN) {
@@ -210,7 +239,11 @@ fun AppNavigation() {
         }
 
         // --- Catálogo y Persistencia Room ---
-        inventarioNavGraph(navController, tiendaActual)
+        inventarioNavGraph(
+            navController = navController,
+            tienda = tiendaActual,
+            rol = rolActual
+        )
 
         // --- Recursos Nativos, Scanner y Gerencial ---
 

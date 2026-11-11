@@ -44,6 +44,8 @@ fun PerfilUsuarioScreen(
     onCerrarSesion: () -> Unit,
     onVolver: () -> Unit
 ) {
+    val esGerencial = rol.contains("Gerencial", ignoreCase = true) || rol.contains("Gerente", ignoreCase = true)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -99,10 +101,13 @@ fun PerfilUsuarioScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Sucursal Asignada:", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            text = if (esGerencial) "Alcance de Supervisión:" else "Sucursal Asignada:",
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                     Text(
-                        text = tienda,
+                        text = if (esGerencial) "Red Comercial Multi-Tienda" else tienda,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
@@ -124,7 +129,7 @@ fun PerfilUsuarioScreen(
                 onClick = onCambiarTienda,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Cambiar de Sucursal")
+                Text(if (esGerencial) "Administrar Tiendas Habilitadas" else "Cambiar de Sucursal")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -153,4 +158,3 @@ fun PerfilUsuarioScreen(
         }
     }
 }
-

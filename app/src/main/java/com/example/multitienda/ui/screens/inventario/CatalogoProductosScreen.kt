@@ -37,6 +37,7 @@ import com.example.multitienda.viewmodel.ProductoViewModel
 
 @Composable
 fun CatalogoProductosScreen(
+    rol: String = "Bodega",
     viewModel: ProductoViewModel = viewModel(),
     onProductoClick: (Int) -> Unit = {},
     onCrearProducto: () -> Unit = {},
@@ -45,6 +46,16 @@ fun CatalogoProductosScreen(
 ) {
     val productos by viewModel.productos.collectAsState()
     val busqueda by viewModel.busqueda.collectAsState()
+
+    val esGerencial = rol.contains("Gerencial", ignoreCase = true) || rol.contains("Gerente", ignoreCase = true)
+    val esBodega = rol.contains("Bodega", ignoreCase = true)
+    val esOperador = !esGerencial && !esBodega
+
+    val tituloPantalla = when {
+        esOperador -> "Conteo Físico — Catálogo"
+        esGerencial -> "Existencias Globales"
+        else -> "Catálogo de Productos"
+    }
 
     Column(
         modifier = Modifier
@@ -56,14 +67,18 @@ fun CatalogoProductosScreen(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
             Text(
-                text = "Catálogo de Productos",
+                text = tituloPantalla,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
         }
         Text(
-            text = "${productos.size} producto(s) en inventario",
+            text = if (esOperador) {
+                "${productos.size} producto(s) • Toque un artículo para registrar su conteo físico"
+            } else {
+                "${productos.size} producto(s) en inventario"
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -77,24 +92,30 @@ fun CatalogoProductosScreen(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        if (esBodega || esGerencial) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = onCrearProducto,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Nuevo")
-            }
-            OutlinedButton(
-                onClick = onVerHistorial,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Default.History, contentDescription = null)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Historial")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (esBodega) {
+                    Button(
+                        onClick = onCrearProducto,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Nuevo Producto")
+                    }
+                }
+                if (esGerencial) {
+                    OutlinedButton(
+                        onClick = onVerHistorial,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.History, contentDescription = null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Ver Historial de Modificaciones")
+                    }
+                }
             }
         }
 

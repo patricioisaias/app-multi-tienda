@@ -52,7 +52,8 @@ fun DashboardGerencialScreen(
     val metricas by viewModel.metricas.collectAsState()
 
     // Si no es gerencial, mostrar bloqueo
-    if (rolActual != "Gerencial") {
+    val esGerencial = rolActual.contains("Gerencial", ignoreCase = true) || rolActual.contains("Gerente", ignoreCase = true)
+    if (!esGerencial) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

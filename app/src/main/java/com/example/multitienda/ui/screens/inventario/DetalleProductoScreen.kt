@@ -29,13 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.multitienda.modelo.Producto
 import com.example.multitienda.ui.components.BotonAccion
 import com.example.multitienda.viewmodel.ProductoViewModel
 
 @Composable
 fun DetalleProductoScreen(
     productoId: Int,
+    rol: String = "Bodega",
     viewModel: ProductoViewModel = viewModel(),
     onEditar: (Int) -> Unit = {},
     onEliminar: (Int) -> Unit = {},
@@ -43,6 +43,10 @@ fun DetalleProductoScreen(
     onVolver: () -> Unit = {}
 ) {
     val producto by viewModel.detalle.collectAsState()
+
+    val esGerencial = rol.contains("Gerencial", ignoreCase = true) || rol.contains("Gerente", ignoreCase = true)
+    val esBodega = rol.contains("Bodega", ignoreCase = true)
+    val esOperador = !esGerencial && !esBodega
 
     LaunchedEffect(productoId) {
         viewModel.cargarDetalle(productoId)
@@ -137,29 +141,38 @@ fun DetalleProductoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            BotonAccion(
-                texto = "Editar Producto",
-                onClick = { onEditar(productoActual.id) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = { onConteo(productoActual.id) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Registrar Conteo Físico")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { onEliminar(productoActual.id) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
+            if (esOperador) {
+                BotonAccion(
+                    texto = "Registrar Conteo Físico",
+                    onClick = { onConteo(productoActual.id) }
                 )
-            ) {
-                Text("Eliminar Producto")
+                Spacer(modifier = Modifier.height(8.dp))
+            } else if (esBodega) {
+                BotonAccion(
+                    texto = "Editar Producto",
+                    onClick = { onEditar(productoActual.id) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { onConteo(productoActual.id) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Registrar Conteo Físico")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { onEliminar(productoActual.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("Eliminar Producto")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedButton(
                 onClick = onVolver,
                 modifier = Modifier.fillMaxWidth()
